@@ -6,6 +6,7 @@ load_dotenv(os.path.join(".env"))
 SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = os.environ.get("DEBUG")
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(",")
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS").split(",")
 
 # Postgres db informations
 DB_HOST = os.environ.get("DB_HOST")

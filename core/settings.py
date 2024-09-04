@@ -28,10 +28,7 @@ DEBUG = DEBUG
 
 ALLOWED_HOSTS = ALLOWED_HOSTS
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://sharp-feet-pay.loca.lt',
-    # Добавьте сюда другие доверенные домены, если необходимо
-]
+CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS
 
 # Application definition
 
