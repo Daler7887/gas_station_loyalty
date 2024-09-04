@@ -4,7 +4,9 @@ from bot.utils.bot_functions import *
 from config import TG_GROUP_ID
 from bot.utils import bot
 import requests
+import logging
 
+logger = logging.getLogger(__name__)
 
 def process_fuel_sales_log():
     #  pass
@@ -65,7 +67,7 @@ def process_fuel_sales_log():
                         send_sales_info_to_tg(new_log)
 
         except FileNotFoundError as e:
-            pass
+            logger.error(f"Ошибка при чтении {file_path}: {e}")   
 
         if new_logs:
             FuelSale.objects.bulk_create(new_logs)
