@@ -92,8 +92,8 @@ def send_sales_info_to_tg(new_log):
 🚗 Номер машины: <b>{new_log.plate_recognition.number}</b>
 🛢️ Колонка: {new_log.pump.number}
 
-⛽ Количество топлива: {new_log.quantity} литров
-💵 Цена за литр: {new_log.price} сум
+⛽ Количество топлива: {new_log.quantity} м/3
+💵 Цена за м/3: {new_log.price} сум
 💰 Общая сумма: <b>{new_log.total_amount}</b> сум '''
 
     url = f"https://api.telegram.org/bot{bot.token}/sendPhoto"
