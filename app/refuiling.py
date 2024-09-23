@@ -22,14 +22,13 @@ def process_fuel_sales_log():
         new_logs = []
 
         try:
-            with open(Orgs.log_path + datetime.now().strftime("%Y") + "/" + file_path + ".txt", 'r') as file:
+            with open(Orgs.log_path + datetime.now().strftime("%Y") + "/" + file_path + ".txt", 'r', errors='ignore') as file:
 
                 for line in file:
 
                     event_type = line[26:28]
                     try:
-                        timestamp = datetime.strptime(
-                            line[:21], "%y-%m-%d %H:%M:%S:%f")
+                        timestamp = datetime.strptime(line[:21], "%y-%m-%d %H:%M:%S:%f")  
                     except:
                         continue
                     # Пропускаем уже обработанные строки
@@ -64,6 +63,7 @@ def process_fuel_sales_log():
                     new_logs.append(new_log)
 
                     if last_record != None:
+                        pass
                         send_sales_info_to_tg(new_log)
 
         except FileNotFoundError as e:
