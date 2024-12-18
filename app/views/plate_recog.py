@@ -1,8 +1,6 @@
 from rest_framework import status
-from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from app.utils.open_ai import recognize_plate
 from app.models import PlateRecognition, Pump
 import xmltodict
 import base64
