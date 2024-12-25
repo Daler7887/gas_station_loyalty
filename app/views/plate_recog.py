@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from app.models import PlateRecognition, Pump
+from app.utils.alpr import read_plate
 import xmltodict
 import base64
 
@@ -30,6 +31,8 @@ class PlateRecognitionView(APIView):
         
         # base64_image = convert_inmemoryfile_to_base64(image_path)
         # plate_number = recognize_plate(base64_image)
+        plate_number = read_plate(image_path).upper()
+        
         pump = Pump.objects.filter(ip_address=event['ipAddress']).first()
         record_exists = PlateRecognition.objects.filter(pump=pump, recognized_at=event['dateTime'][:19]).exists()
 
@@ -40,7 +43,7 @@ class PlateRecognitionView(APIView):
        
         new_record = PlateRecognition(
             pump = pump,
-            number = event["ANPR"]['licensePlate'],
+            number = plate_number,
             image1 = image_path,
             image2 = image_path1,
             recognized_at = event['dateTime'][:19]

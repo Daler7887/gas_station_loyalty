@@ -22,4 +22,4 @@ TG_GROUP_ID = os.environ.get("TG_GROUP_ID")
 
 # OpenAI
 OPENAI_API_TOKEN = os.environ.get("OPENAI_API_TOKEN")
-
+ALPR_TOKEN = os.environ.get("ALPR_TOKEN")
