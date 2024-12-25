@@ -31,7 +31,7 @@ class PlateRecognitionView(APIView):
         
         # base64_image = convert_inmemoryfile_to_base64(image_path)
         # plate_number = recognize_plate(base64_image)
-        plate_number = read_plate(image_path).upper()
+        plate_number = read_plate(image_path1).upper()
         
         pump = Pump.objects.filter(ip_address=event['ipAddress']).first()
         record_exists = PlateRecognition.objects.filter(pump=pump, recognized_at=event['dateTime'][:19]).exists()
