@@ -83,7 +83,7 @@ async def send_newsletter(bot: Bot, chat_id, text, photo=None, video=None, docum
                 video,
                 caption=text,
                 reply_markup=reply_markup,
-                parse_mode = ParseMode,
+                parse_mode = ParseMode.HTML,
             )
         if document:
             # send document

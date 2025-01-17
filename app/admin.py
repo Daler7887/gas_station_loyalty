@@ -23,4 +23,9 @@ class PumpAdmin(admin.ModelAdmin):
     list_display = ['number', 'organization', 'ip_address']
     search_fields = ['number', 'ip_address']
 
+@admin.register(Constant)
+class ConstantAdmin(admin.ModelAdmin):
+    list_display = ['key', 'value']
+
+
 admin.site.register(LogProcessingMetadata)

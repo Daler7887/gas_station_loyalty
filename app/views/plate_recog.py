@@ -5,6 +5,8 @@ from app.models import PlateRecognition, Pump
 from app.utils.alpr import read_plate
 import xmltodict
 import base64
+from bot.utils.clients import inform_user_bonus
+from bot.models import Bot_user
 
 class PlateRecognitionView(APIView):
     # parser_classes = (MultiPartParser, FormParser, )
@@ -49,6 +51,14 @@ class PlateRecognitionView(APIView):
             recognized_at = event['dateTime'][:19]
         )
         new_record.save()
+        
+        try:
+            user = Bot_user.objects.get(plate_number=plate_number)
+            if user:
+                inform_user_bonus(user)
+        except Exception as e:
+            print(e)
+
         return Response(status=status.HTTP_200_OK)
     
 

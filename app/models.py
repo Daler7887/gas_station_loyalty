@@ -1,6 +1,15 @@
 from django.db import models
 
 
+class Constant(models.Model):
+    key = models.CharField(max_length=50, verbose_name='ключ')
+    value = models.TextField(verbose_name='значение')
+
+    class Meta:
+        verbose_name = 'Константа'
+        verbose_name_plural = 'Константы'
+
+
 class Organization(models.Model):
     name = models.CharField(max_length=255)
     log_path = models.CharField(max_length=255, default='')

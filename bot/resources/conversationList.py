@@ -1,11 +1,17 @@
-n = 8
+n = 14
 (
-    SELECT_LANG,
+    GET_LANG,
     GET_NAME,
     GET_CONTACT,
+    GET_PLATE_NUMBER,
     CLICK_LANG,
     ALL_SETTINGS,
     LANG_SETTINGS,
     NAME_SETTINGS,
     PHONE_SETTINGS,
-) = range(0, n)
+    CHANGE_LANG,
+    CHANGE_NAME,
+    CHANGE_PHONE,
+    CHANGE_PLATE_NUMBER,
+    GET_SUGGESTION,
+) = range(0, n) 

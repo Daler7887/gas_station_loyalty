@@ -54,22 +54,88 @@ lang_dict = {
         """Ваше имя успешно изменено!""",
     ],
 
-    "": ["", ""],
+    "click button leave number": [
+        "Iltimos, `Telefon raqamni yuborish` tugmasini bosing",
+        "Пожалуйста, нажмите на кнопку `Оставить номер телефона`"],
 
-    "": ["", ""],
+    "input promocode button": [
+        "Promokodni kiritish 🎟",
+        "Ввести промокод 🎟"
+    ],
 
-    "": ["", ""],
+    "get promocodes button": [
+        "Mening promokodlarim 🏷",
+        "Мои промокоды 🏷"
+    ],
+    "feedback": [
+        "Aloqa 📪",
+        "Обратная связь 📪"
+    ],
+    "send feedback": [
+        "Iltimos, fikringizni kiriting:",
+        "Пожалуйста, введите ваше сообщение для обратной связи:"
+    ],
 
-    "": ["", ""],
+    "feedback sent": [
+        "Rahmat, sizning xabaringiz qabul qilindi! Tez orada siz bilan bog",
+        "Спасибо за ваше сообщение! Мы свяжемся с вами в ближайшее время."
+    ],
 
-    "": ["", ""],
+    "complaints": [
+        "Shikoyatlar 📝",
+        "Жалобы 📝"
+    ],
+    "suggestions": [
+        "Takliflar 💡",
+        "Предложения 💡"
+    ],
 
-    "": ["", ""],
-
-    "": ["", ""],
-
-    "": ["", ""],
-
-    "": ["", ""],
-
+    "send complaints": [
+        "Iltimos, shikoyatingizni yuboring:",
+        "Пожалуйста, отправьте вашу жалобу:"
+    ],
+    "send suggestions": [
+        "Bu yerda biz bilan bog'lanishingiz va takliflaringizni yuborishingiz mumkin:",
+        "Здесь вы можете связаться с нами и отправить свои предложения:"
+    ],
+    "complaints received": [
+        "Shikoyatingiz uchun rahmat!",
+        "Спасибо за вашу жалобу!"
+    ],
+    "suggestions received": [
+        "Taklifingiz uchun rahmat!",
+        "Спасибо за ваше предложение!"
+    ],
+    "balance": [
+        "Balans 💰",
+        "Баланс 💰"
+    ],
+    "message from admin": [
+        "📢 **Qo'llab-quvvatlash jamoasidan javob** 📢",
+        "📢 **Ответ от Команды Поддержки** 📢"
+    ],
+    "leave plate number": [
+        "iltimos, avtomobilingizning raqamini qo'shib qo'ying.",
+        "Пожалуйста, оставьте номер вашего автомобиля для дальнейшей обработки."
+    ],
+    "change plate number": [
+        "Avtomobil raqamini o'zgartirish 🚗",
+        "Изменить номер автомобиля 🚗"
+    ],
+    "user balance": [
+        "Sizning balansingiz: {} so'm",
+        "Ваш баланс: {} сум"
+    ],
+    "send new plate number": [
+        "Yangi avtomobil raqamingizni yuboring!",
+        "Отправьте ваш новый номер автомобиля!"
+    ],
+    "changed your plate number": [
+        "Sizning avtomobil raqamingiz muvaffaqiyatli o'zgartirildi!",
+        "Ваш номер автомобиля успешно изменен!"
+    ],
+    "inform client": [
+        "Sizning avtomobilingizni zapravka jarayonida. Sizning balansingizda {} so'm bonus mavjud.",
+        "Процесс заправки вашего автомобиля начался. На вашем балансе {} сум бонус."
+    ]
 }

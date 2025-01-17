@@ -1,4 +1,5 @@
 from bot.services.language_service import get_word
+from bot.services import sync_to_async
 from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -27,7 +28,14 @@ async def settings_keyboard(update):
         [get_word("change lang", update)],
         [get_word("change name", update)],
         [get_word("change phone number", update)],
+        [get_word("change plate number", update)],
         [get_word("main menu", update)],
     ]
 
     return buttons
+
+async def select_lang_keyboard():
+    buttons = [["UZ 🇺🇿", "RU 🇷🇺"]]
+    markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True, one_time_keyboard=True)
+    return markup
+

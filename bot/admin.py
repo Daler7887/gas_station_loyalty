@@ -1,16 +1,16 @@
 from django.contrib import admin
 from bot.models import *
 from django.utils.html import format_html
-from django.urls import reverse
+from django.urls import reverse, path
 
 class Bot_userAdmin(admin.ModelAdmin):
     def get_list_display(self, request):
         if request.user.is_superuser:
-            list_display = ['name', 'username', 'phone', 'date', 'edit_button']
+            list_display = ['name', 'username', 'phone', 'plate_number','date', 'edit_button']
         else:
-            list_display = ['name', 'username', 'phone', 'date']
+            list_display = ['name', 'username', 'phone', 'plate_number', 'date']
         return list_display
-    search_fields = ['name', 'username', 'phone']
+    search_fields = ['name', 'username', 'phone', 'plate_number']
     list_filter = ['date']
     list_display_links = None
 
@@ -72,5 +72,17 @@ class MesageAdmin(admin.ModelAdmin):
         form.base_fields['bot_users'].widget.attrs['style'] = 'width: 20em;'
         return form
 
+class SocialNetworkAdmin(admin.ModelAdmin):
+    list_display = ('name', 'url')
+
+class BranchAdmin(admin.ModelAdmin):
+    list_display = ('name_ru', 'name_uz', 'message_ru', 'message_uz')
+
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ('user_id', 'category', 'text', 'timestamp')
+    list_filter = ('category',)
+
 admin.site.register(Bot_user, Bot_userAdmin)
 admin.site.register(Message, MesageAdmin)
+admin.site.register(Feedback, FeedbackAdmin)
+
