@@ -6,6 +6,7 @@ from app.models import Organization
 # Глобальная переменная, чтобы держать соединение
 smb_reader = None
 
+
 def init_smb_connection():
     """Инициализация SMBReader при старте планировщика."""
     global smb_reader
@@ -22,6 +23,7 @@ def init_smb_connection():
             is_direct_tcp=True
         )
 
+
 def read_file_task():
     """Задача, которая вызывается каждые 5 секунд."""
     global smb_reader
@@ -32,6 +34,7 @@ def read_file_task():
         print('Файл прочитан')
     except Exception as e:
         print("Ошибка при чтении файла:", e)
+
 
 def start_scheduler():
     init_smb_connection()

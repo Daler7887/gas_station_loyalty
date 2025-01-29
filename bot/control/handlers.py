@@ -103,7 +103,8 @@ change_plate_number_handler = ConversationHandler(
         lang_dict['change plate number']), main.change_plate_number)],
     states={
         CHANGE_PLATE_NUMBER: [
-            MessageHandler(filters.TEXT & (~filters.COMMAND), main.set_plate_number)
+            MessageHandler(filters.TEXT & (~filters.COMMAND),
+                           main.set_plate_number)
         ],
     },
     fallbacks=[

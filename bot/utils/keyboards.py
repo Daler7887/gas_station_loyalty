@@ -12,15 +12,18 @@ async def _inline_footer_buttons(update, buttons, back=True, main_menu=True):
     new_buttons = []
     if back:
         new_buttons.append(
-            InlineKeyboardButton(text=get_word('back', update), callback_data='back'),
+            InlineKeyboardButton(text=get_word(
+                'back', update), callback_data='back'),
         )
     if main_menu:
         new_buttons.append(
-            InlineKeyboardButton(text=get_word('main menu', update), callback_data='main_menu'),
+            InlineKeyboardButton(text=get_word(
+                'main menu', update), callback_data='main_menu'),
         )
 
     buttons.append(new_buttons)
     return buttons
+
 
 async def settings_keyboard(update):
 
@@ -34,8 +37,9 @@ async def settings_keyboard(update):
 
     return buttons
 
+
 async def select_lang_keyboard():
     buttons = [["UZ 🇺🇿", "RU 🇷🇺"]]
-    markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True, one_time_keyboard=True)
+    markup = ReplyKeyboardMarkup(
+        buttons, resize_keyboard=True, one_time_keyboard=True)
     return markup
-

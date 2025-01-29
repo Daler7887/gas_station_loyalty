@@ -5,8 +5,10 @@ load_dotenv(os.path.join(".env"))
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "t")
-ALLOWED_HOSTS = [host.strip() for host in os.environ.get("ALLOWED_HOSTS", "").split(",")]
-CSRF_TRUSTED_ORIGINS = [url.strip() for url in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")]
+ALLOWED_HOSTS = [host.strip()
+                 for host in os.environ.get("ALLOWED_HOSTS", "").split(",")]
+CSRF_TRUSTED_ORIGINS = [url.strip() for url in os.environ.get(
+    "CSRF_TRUSTED_ORIGINS", "").split(",")]
 
 # Postgres db informations
 DB_HOST = os.environ.get("DB_HOST")

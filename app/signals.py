@@ -2,6 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import LoyaltyPointsTransaction
 
+
 @receiver(post_save, sender=LoyaltyPointsTransaction)
 def create_or_update_bot_user(sender, instance, created, **kwargs):
     """

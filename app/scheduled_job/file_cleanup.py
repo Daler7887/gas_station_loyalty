@@ -15,7 +15,7 @@
 #     # Проходим по файлам в папке
 #     for filename in os.listdir(folder):
 #         file_path = os.path.join(folder, filename)
-        
+
 #         try:
 #             if os.path.isfile(file_path):
 #                 # Получаем время создания файла
@@ -25,6 +25,6 @@
 #                 if file_creation_time < cutoff_time:
 #                     os.remove(file_path)
 #                     logger.info(f"Файл {file_path} успешно удалён.")
-    
+
 #         except Exception as e:
 #             logger.error(f"Ошибка при удалении {file_path}: {e}")

@@ -4,9 +4,11 @@ from django.shortcuts import resolve_url
 from django.conf import settings
 from app.services.user_service import *
 
+
 async def go_to_login(request):
     path = await request.get_full_path()
     return redirect_to_login(path)
+
 
 async def group_required(*groups):
     async def decorator(function):

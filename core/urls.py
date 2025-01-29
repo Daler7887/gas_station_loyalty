@@ -8,7 +8,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('app.urls')),
     path('', include('bot.urls')),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # Логин
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), # Обновление токена
-]  
-
+    path('api/token/', TokenObtainPairView.as_view(),
+         name='token_obtain_pair'),  # Логин
+    path('api/token/refresh/', TokenRefreshView.as_view(),
+         name='token_refresh'),  # Обновление токена
+]

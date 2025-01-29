@@ -126,7 +126,6 @@ class LoyaltyPointsTransaction(models.Model):
         self.full_clean()  # Проверка данных
         super().save(*args, **kwargs)
 
-
     def __str__(self):
         return f"{self.car} - {self.get_transaction_type_display()} {self.points} баллов"
 

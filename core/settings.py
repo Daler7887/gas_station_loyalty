@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'bot.apps.bot',
     'rest_framework',
     'rest_framework_xml',
-    'jazzmin',  
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -76,12 +76,14 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
 }
-   
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Время жизни access-токена
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    # Время жизни refresh-токена
+    # Время жизни refresh-токена
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,                 # Ротация refresh-токенов
-    'BLACKLIST_AFTER_ROTATION': True,              # Блокировка старых refresh-токенов
+    # Блокировка старых refresh-токенов
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 ROOT_URLCONF = 'core.urls'
@@ -182,4 +184,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CELERY_BROKER_URL = "redis://localhost:6379"
 
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000  # Увеличьте значение в зависимости от ваших нужд
+# Увеличьте значение в зависимости от ваших нужд
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000

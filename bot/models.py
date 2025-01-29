@@ -1,11 +1,13 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
-import re 
+import re
+
 
 def plate_number_validator(plate_number):
     if not re.match(r'[A-Z]{2}\d{3}[A-Z]{2}', plate_number):
         raise ValidationError('Неверный формат номера автомобиля')
+
 
 class Bot_user(models.Model):
     user_id = models.BigIntegerField(null=True)
@@ -22,7 +24,9 @@ class Bot_user(models.Model):
                             max_length=4, verbose_name='')
     date = models.DateTimeField(
         db_index=True, null=True, auto_now_add=True, blank=True, verbose_name='Дата регистрации')
-    car = models.ForeignKey('app.Car', on_delete=models.CASCADE, null=True, blank=True, verbose_name='Автомобиль')
+    car = models.ForeignKey('app.Car', on_delete=models.CASCADE,
+                            null=True, blank=True, verbose_name='Автомобиль')
+
     def __str__(self) -> str:
         try:
             return self.name + ' ' + str(self.phone)

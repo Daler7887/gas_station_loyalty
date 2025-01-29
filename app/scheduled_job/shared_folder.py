@@ -23,7 +23,8 @@ try:
     if connected:
         print("Успешно подключились!")
         file_obj = BytesIO()
-        file_attributes, file_size = conn.retrieveFile(share_name, file_path, file_obj)
+        file_attributes, file_size = conn.retrieveFile(
+            share_name, file_path, file_obj)
         file_obj.seek(0)
         print(file_obj.read().decode('utf-8', errors='replace'))
     else:

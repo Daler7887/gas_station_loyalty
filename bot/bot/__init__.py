@@ -16,21 +16,23 @@ async def is_message_back(update: Update):
     else:
         return False
 
+
 async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     update = update.callback_query if update.callback_query else update
 
     bot = context.bot
-    keyboards =  [
-            [
-                await get_word('balance', update)
-            ],
-            [
-                await get_word('feedback', update),
-                await get_word('settings', update)
-            ]
+    keyboards = [
+        [
+            await get_word('balance', update)
+        ],
+        [
+            await get_word('feedback', update),
+            await get_word('settings', update)
+        ]
     ]
 
-    reply_markup = ReplyKeyboardMarkup(keyboard=keyboards, resize_keyboard=True)
+    reply_markup = ReplyKeyboardMarkup(
+        keyboard=keyboards, resize_keyboard=True)
     await bot.send_message(
         update.message.chat_id,
         await get_word('main menu', update),
@@ -44,4 +46,4 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def filter_objects_sync(model_class, filters):
     return list(
         model_class.objects.filter(**filters).values()
-        )
+    )

@@ -8,6 +8,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def process_fuel_sales_log():
     # pass
     # Получаем последний обработанный лог
@@ -28,7 +29,8 @@ def process_fuel_sales_log():
 
                     event_type = line[26:28]
                     try:
-                        timestamp = datetime.strptime(line[:21], "%y-%m-%d %H:%M:%S:%f")  
+                        timestamp = datetime.strptime(
+                            line[:21], "%y-%m-%d %H:%M:%S:%f")
                     except:
                         continue
                     # Пропускаем уже обработанные строки
@@ -67,7 +69,7 @@ def process_fuel_sales_log():
                         send_sales_info_to_tg(new_log)
 
         except FileNotFoundError as e:
-            logger.error(f"Ошибка при чтении {file_path}: {e}")   
+            logger.error(f"Ошибка при чтении {file_path}: {e}")
 
         if new_logs:
             FuelSale.objects.bulk_create(new_logs)
@@ -80,7 +82,7 @@ def process_fuel_sales_log():
 
 
 def send_sales_info_to_tg(new_log):
-    photo_path = new_log.plate_recognition.image2 
+    photo_path = new_log.plate_recognition.image2
 
     message_text = fr'''
       <b>⛽ Продажа топлива</b>
@@ -99,9 +101,9 @@ def send_sales_info_to_tg(new_log):
     url = f"https://api.telegram.org/bot{bot.token}/sendPhoto"
     payload = {'chat_id': TG_GROUP_ID,
                'caption': message_text, 'parse_mode': 'HTML'}
-    
+
     response = requests.post(url, data=payload, files={'photo': photo_path})
-    
+
     # response = requests.post(url, data=payload)
 
 

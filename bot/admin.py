@@ -3,10 +3,12 @@ from bot.models import *
 from django.utils.html import format_html
 from django.urls import reverse, path
 
+
 class Bot_userAdmin(admin.ModelAdmin):
     def get_list_display(self, request):
         if request.user.is_superuser:
-            list_display = ['name', 'username', 'phone', 'car','date', 'edit_button']
+            list_display = ['name', 'username',
+                            'phone', 'car', 'date', 'edit_button']
         else:
             list_display = ['name', 'username', 'phone', 'car', 'date']
         return list_display
@@ -21,19 +23,20 @@ class Bot_userAdmin(admin.ModelAdmin):
 
 
 class MesageAdmin(admin.ModelAdmin):
-    list_display = ['bot_users_name', 'small_text', 'open_photo', 'open_video', 'open_file', 'date']
+    list_display = ['bot_users_name', 'small_text',
+                    'open_photo', 'open_video', 'open_file', 'date']
     list_display_links = None
     fieldsets = (
         ('', {
             'fields': ['bot_users', 'text', 'photo', 'video', 'file'],
-            'description': 'Выберите пользователей, которым вы хотите отправить сообщение, или просто оставьте поле пустым, чтобы отправить всем пользователям.', 
+            'description': 'Выберите пользователей, которым вы хотите отправить сообщение, или просто оставьте поле пустым, чтобы отправить всем пользователям.',
         }),
 
     )
-    
+
     def bot_users_name(self, obj):
         result = ''
-        if users:=obj.bot_users.all():
+        if users := obj.bot_users.all():
             for user in users:
                 result += f'{user.name} {user.phone} | '
         else:
@@ -72,17 +75,20 @@ class MesageAdmin(admin.ModelAdmin):
         form.base_fields['bot_users'].widget.attrs['style'] = 'width: 20em;'
         return form
 
+
 class SocialNetworkAdmin(admin.ModelAdmin):
     list_display = ('name', 'url')
 
+
 class BranchAdmin(admin.ModelAdmin):
     list_display = ('name_ru', 'name_uz', 'message_ru', 'message_uz')
+
 
 class FeedbackAdmin(admin.ModelAdmin):
     list_display = ('user_id', 'category', 'text', 'timestamp')
     list_filter = ('category',)
 
+
 admin.site.register(Bot_user, Bot_userAdmin)
 admin.site.register(Message, MesageAdmin)
 admin.site.register(Feedback, FeedbackAdmin)
-

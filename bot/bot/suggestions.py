@@ -53,6 +53,6 @@ async def handle_feedback_response(update: Update, context: ContextTypes.DEFAULT
 
         await context.bot.send_message(
             chat_id=feedback.user_id,
-            text= await get_word("message from admin", chat_id=feedback.user_id) + f"\n {response_text}",
+            text=await get_word("message from admin", chat_id=feedback.user_id) + f"\n {response_text}",
             reply_to_message_id=feedback.message_id
         )

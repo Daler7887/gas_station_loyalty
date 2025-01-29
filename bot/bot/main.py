@@ -51,7 +51,7 @@ async def get_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if car:
             balance = car.loyalty_points
         else:
-            balance = 0         
+            balance = 0
         msg = await get_word('user balance', update)
         await update.message.reply_text(msg.format(balance))
     except Bot_user.DoesNotExist:
@@ -164,7 +164,7 @@ async def set_plate_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Bot_user.DoesNotExist:
         await update.message.reply_text('User does not exist.')
     await settings_menu(update, context)
-    return ConversationHandler.END 
+    return ConversationHandler.END
 
 # async def reply_to_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 #     if str(update.channel_post.chat.id) == FEEDBACK_CHANNEL_ID and update.channel_post.reply_to_message:

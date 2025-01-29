@@ -2,11 +2,14 @@ from app.services import *
 from django.contrib.auth.models import User, Group
 from django.db import IntegrityError
 
+
 async def is_user_in_group(request, *groups):
     return request.user.groups.afilter(name__in=groups).aexists() or request.user.is_superuser
 
+
 async def is_superuser(request):
     return request.user.is_superuser
+
 
 async def users_all(exclude_superadmins=False):
     users = User.objects.all()
@@ -14,21 +17,24 @@ async def users_all(exclude_superadmins=False):
         users = users.exclude(is_superuser=True)
     return users
 
+
 async def get_user_by_pk(pk):
     return get_object_or_404(User, pk=pk)
 
+
 async def filter_groups_of_user(user):
     return user.groups.all()
+
 
 async def create_or_update_user(user: User, username, first_name, last_name, groups_id, email, password):
     if not user:
         # create
         user = User.objects.acreate()
 
-    user.username=username
-    user.first_name=first_name
-    user.last_name=last_name
-    user.email=email
+    user.username = username
+    user.first_name = first_name
+    user.last_name = last_name
+    user.email = email
 
     # set password if available
     if password:
