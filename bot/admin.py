@@ -6,11 +6,11 @@ from django.urls import reverse, path
 class Bot_userAdmin(admin.ModelAdmin):
     def get_list_display(self, request):
         if request.user.is_superuser:
-            list_display = ['name', 'username', 'phone', 'plate_number','date', 'edit_button']
+            list_display = ['name', 'username', 'phone', 'car','date', 'edit_button']
         else:
-            list_display = ['name', 'username', 'phone', 'plate_number', 'date']
+            list_display = ['name', 'username', 'phone', 'car', 'date']
         return list_display
-    search_fields = ['name', 'username', 'phone', 'plate_number']
+    search_fields = ['name', 'username', 'phone', 'car__plate_number']
     list_filter = ['date']
     list_display_links = None
 

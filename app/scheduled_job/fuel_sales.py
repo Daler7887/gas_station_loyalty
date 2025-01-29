@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from .models import FuelSale, LogProcessingMetadata, Organization, Pump, PlateRecognition
+from ..models import FuelSale, LogProcessingMetadata, Organization, Pump, PlateRecognition
 from bot.utils.bot_functions import *
 from config import TG_GROUP_ID
 from bot.utils import bot
@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 def process_fuel_sales_log():
-    #  pass
+    # pass
     # Получаем последний обработанный лог
     Organizations = Organization.objects.all()
     for Orgs in Organizations:

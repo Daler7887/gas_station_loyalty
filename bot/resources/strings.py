@@ -137,5 +137,9 @@ lang_dict = {
     "inform client": [
         "Sizning avtomobilingizni zapravka jarayonida. Sizning balansingizda {} so'm bonus mavjud.",
         "Процесс заправки вашего автомобиля начался. На вашем балансе {} сум бонус."
-    ]
+    ],
+    "incorrect plate number": [
+        "Noto'g'ri avtomobil raqami. Iltimos, qaytadan kiriting.",
+        "Неверный номер автомобиля. Пожалуйста, введите снова."
+    ],
 }

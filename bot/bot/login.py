@@ -1,20 +1,25 @@
 from bot.bot import *
+from bot.utils.clients import validate_plate_number
+from app.models import Car
+
 
 async def _to_the_select_lang(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update_message_reply_text(
         update,
         "Bot tilini tanlang\n\nВыберите язык бота",
-        reply_markup= await select_lang_keyboard()
+        reply_markup=await select_lang_keyboard()
     )
     return GET_LANG
 
+
 async def _to_the_getting_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update_message_reply_text(
-        update, 
+        update,
         await get_word("type name", update),
-        reply_markup = await reply_keyboard_markup([[await get_word("back", update)]])
+        reply_markup=await reply_keyboard_markup([[await get_word("back", update)]])
     )
     return GET_NAME
+
 
 async def _to_the_getting_contact(update: Update):
     i_contact = KeyboardButton(
@@ -32,11 +37,12 @@ async def _to_the_getting_contact(update: Update):
 
     return GET_CONTACT
 
+
 async def _to_the_getting_plate_number(update: Update):
     await update_message_reply_text(
         update,
         await get_word("leave plate number", update),
-        reply_markup = await reply_keyboard_markup([[await get_word("back", update)]])
+        reply_markup=await reply_keyboard_markup([[await get_word("back", update)]])
     )
 
     return GET_PLATE_NUMBER
@@ -61,6 +67,7 @@ async def get_lang(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return await _to_the_getting_name(update, context)
 
+
 async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if await is_message_back(update):
         return await _to_the_select_lang(update, context)
@@ -72,6 +79,7 @@ async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await obj.asave()
 
     return await _to_the_getting_contact(update)
+
 
 async def get_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if await is_message_back(update):
@@ -91,22 +99,28 @@ async def get_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await get_word("number is logged", update)
         )
         return GET_CONTACT
-    
+
     obj = await get_object_by_update(update)
     obj.phone = phone_number
     await obj.asave()
     return await _to_the_getting_plate_number(update)
- 
+
 
 async def get_plate_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if await is_message_back(update):
         return await _to_the_getting_contact(update)
 
+    if not await validate_plate_number(update.message.text):
+        await update.message.reply_text(await get_word("incorrect plate number", update))
+        return GET_PLATE_NUMBER
     obj = await get_object_by_update(update)
-    obj.plate_number = update.message.text
+    car = await sync_to_async(Car.objects.get_or_create)(plate_number=update.message.text)
+    obj.car = car[0]
     await obj.asave()
     await main_menu(update, context)
     return ConversationHandler.END
+
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return await _to_the_select_lang(update, context)

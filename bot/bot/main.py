@@ -1,6 +1,7 @@
 from bot.bot import *
-from asgiref.sync import sync_to_async
-from bot.utils.clients import get_user_bonus
+from asgiref.sync import sync_to_async, async_to_sync
+from app.models import Car
+from bot.utils.clients import validate_plate_number
 
 FEEDBACK_CHANNEL_ID = -1002144060952
 
@@ -46,7 +47,11 @@ async def get_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.chat.id
     try:
         user = await Bot_user.objects.aget(user_id=user_id)
-        balance = await sync_to_async(get_user_bonus)(user)
+        car = await sync_to_async(lambda: user.car)()
+        if car:
+            balance = car.loyalty_points
+        else:
+            balance = 0         
         msg = await get_word('user balance', update)
         await update.message.reply_text(msg.format(balance))
     except Bot_user.DoesNotExist:
@@ -146,9 +151,13 @@ async def set_plate_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
     user_id = update.message.chat.id
     plate_number = update.message.text
+    if not await validate_plate_number(plate_number):
+        await update.message.reply_text('Неверный формат номера автомобиля')
+        return CHANGE_PLATE_NUMBER
     try:
         user = await sync_to_async(Bot_user.objects.get)(user_id=user_id)
-        user.plate_number = plate_number
+        car = await sync_to_async(Car.objects.get_or_create)(plate_number=plate_number)
+        user.car = car[0]
         await sync_to_async(user.save)()
         message = await get_word('changed your plate number', update)
         await update.message.reply_text(message)

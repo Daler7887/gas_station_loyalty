@@ -37,3 +37,4 @@ async def save_and_get_photo(update, context):
 async def set_last_msg_and_markup(context, msg, markup=None):
     context.user_data['last_msg'] = msg
     context.user_data['last_markup'] = markup
+
