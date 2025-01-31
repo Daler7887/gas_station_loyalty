@@ -50,7 +50,7 @@ def process_fuel_sales_log():
             continue
 
         last_processed_timestamp = org.last_processed_timestamp if org.last_processed_timestamp else datetime.now() - \
-            timedelta(days=1)
+            timedelta(month=1)
         current_date = datetime.now().date()
         last_date = last_processed_timestamp.date()
         file_path = last_processed_timestamp.strftime("%Y%m%d")
