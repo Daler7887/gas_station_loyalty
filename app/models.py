@@ -65,7 +65,7 @@ class FuelSale(models.Model):
         is_new = self.pk is None  # Проверяем, создается ли новая запись
         super().save(*args, **kwargs)
 
-        if is_new and self.plate_recognition and self.organization.loyalty_program:
+        if is_new and self.plate_recognition and self.organization.loyalty_program and self.plate_recognition.number.upper() != 'UNKNOWN' and self.plate_recognition.number.upper() != 'ERROR':
             # Рассчитываем баллы
             car, created = Car.objects.get_or_create(
                 plate_number=self.plate_recognition.number, defaults={'loyalty_points': 0})
