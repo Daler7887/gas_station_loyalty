@@ -61,3 +61,4 @@ wcwidth==0.2.13
 xmltodict==0.13.0
 zope.event==5.0
 zope.interface==6.3
+pysmb==1.2.10
