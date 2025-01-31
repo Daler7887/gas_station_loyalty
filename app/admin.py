@@ -12,13 +12,13 @@ class PlateNumberAdmin(admin.ModelAdmin):
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'log_path')
+    list_display = ('name', 'server', 'log_path', 'loyalty_program')
 
 
 @admin.register(FuelSale)
 class FuelSaleAdmin(admin.ModelAdmin):
     list_display = ('date', 'organization', 'pump', 'quantity',
-                    'price', 'total_amount', 'plate_recognition')
+                    'price', 'total_amount', 'plate_recognition', 'new_client')
     list_filter = ('organization', 'pump')
 
 
@@ -46,11 +46,15 @@ class LoyaltyPointsTransactionAdmin(admin.ModelAdmin):
             super().save_model(request, obj, form, change)
 
 
-admin.site.register(LogProcessingMetadata)
-
-
 @admin.register(Car)
 class CarAdmin(admin.ModelAdmin):
     list_display = ('plate_number', 'loyalty_points')
     search_fields = ('plate_number', )
     list_filter = ('loyalty_points', )
+
+
+@admin.register(SMBServer)
+class SMBServerAdmin(admin.ModelAdmin):
+    list_display = ("name", "server_ip", "share_name", "active")
+    list_filter = ("active",)
+    search_fields = ("name", "server_ip", "share_name")

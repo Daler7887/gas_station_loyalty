@@ -13,7 +13,10 @@ class Constant(models.Model):
 
 class Organization(models.Model):
     name = models.CharField(max_length=255)
+    server = models.ForeignKey('SMBServer', on_delete=models.CASCADE, null=True)
     log_path = models.CharField(max_length=255, default='')
+    last_processed_timestamp = models.DateTimeField(null=True, blank=True, verbose_name="Последняя обработка")
+    loyalty_program = models.BooleanField(default=False, verbose_name="Программа лояльности")
 
     def __str__(self):
         return self.name
@@ -21,21 +24,15 @@ class Organization(models.Model):
 
 class Pump(models.Model):
     number = models.IntegerField()  # Номер колонки
-    ip_address = models.CharField(max_length=15, null=True)
+    ip_address = models.CharField(max_length=15, null=True, blank=True)
     organization = models.ForeignKey(
         Organization, on_delete=models.CASCADE, null=True)
+    public_ip = models.CharField(max_length=15, null=True, blank=True)
+    public_port = models.IntegerField(null=True, blank=True)
+    alpr = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Pump {self.number} - {self.organization}"
-
-
-class LogProcessingMetadata(models.Model):
-    last_processed_timestamp = models.DateTimeField(null=True, blank=True)
-    organization = models.ForeignKey(
-        Organization, on_delete=models.CASCADE, null=True)
-
-    def __str__(self):
-        return f"Last processed log timestamp for {self.organization} : {self.last_processed_timestamp}"
 
 
 # Create your models here.
@@ -62,12 +59,13 @@ class FuelSale(models.Model):
     pump = models.ForeignKey(Pump, on_delete=models.CASCADE, null=True)
     plate_recognition = models.ForeignKey(
         PlateRecognition, on_delete=models.CASCADE, null=True)
+    new_client = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None  # Проверяем, создается ли новая запись
         super().save(*args, **kwargs)
 
-        if is_new and self.plate_recognition:
+        if is_new and self.plate_recognition and self.organization.loyalty_program:
             # Рассчитываем баллы
             car, created = Car.objects.get_or_create(
                 plate_number=self.plate_recognition.number, defaults={'loyalty_points': 0})
@@ -111,7 +109,7 @@ class LoyaltyPointsTransaction(models.Model):
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
-        'auth.User', on_delete=models.CASCADE, null=True)
+        'auth.User', on_delete=models.CASCADE, null=True, blank=True)
 
     def clean(self):
         # Проверяем баланс перед сохранением
@@ -140,3 +138,15 @@ class Car(models.Model):
 
     def __str__(self):
         return f"{self.plate_number}"
+
+
+class SMBServer(models.Model):
+    name = models.CharField(max_length=255, unique=True, verbose_name="Название сервера")
+    server_ip = models.GenericIPAddressField(verbose_name="IP-адрес сервера")
+    share_name = models.CharField(max_length=255, verbose_name="Имя расшаренной папки")
+    username = models.CharField(max_length=255, blank=True, null=True, verbose_name="Логин")
+    password = models.CharField(max_length=255, blank=True, null=True, verbose_name="Пароль")
+    active = models.BooleanField(default=True, verbose_name="Активен")
+
+    def __str__(self):
+        return f"{self.name} ({self.server_ip})"

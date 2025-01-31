@@ -1,84 +1,98 @@
 from datetime import datetime, timedelta
-from ..models import FuelSale, LogProcessingMetadata, Organization, Pump, PlateRecognition
+from app.models import FuelSale, Organization, Pump, PlateRecognition
+from django.db import transaction
 from bot.utils.bot_functions import *
 from config import TG_GROUP_ID
 from bot.utils import bot
+from app.utils.smb_utils import read_file
 import requests
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 
 def process_fuel_sales_log():
-    # pass
-    # Получаем последний обработанный лог
-    Organizations = Organization.objects.all()
-    for Orgs in Organizations:
+    organizations = Organization.objects.select_related('server').all()
+    for org in organizations:
+        smb_server = org.server
+        if not smb_server:
+            logger.info(f"У организации {org} не указан SMB-сервер")
+            continue
 
-        last_metadata = LogProcessingMetadata.objects.filter(
-            organization=Orgs).first()
-        last_processed_timestamp = last_metadata.last_processed_timestamp if last_metadata else None
+        last_processed_timestamp = org.last_processed_timestamp if org.last_processed_timestamp else datetime.now() - \
+            timedelta(days=1)
+        current_date = datetime.now().date()
+        last_date = last_processed_timestamp.date()
 
-        file_path = datetime.now().strftime("%Y%m%d")
+        file_path = last_processed_timestamp.strftime("%Y%m%d")
+        smb_file_path = os.path.join(
+            smb_server.share_name, last_processed_timestamp.strftime("%Y"), file_path + ".txt")
+
         new_logs = []
-
         try:
-            with open(Orgs.log_path + datetime.now().strftime("%Y") + "/" + file_path + ".txt", 'r', errors='ignore') as file:
+            file_obj = read_file(
+                smb_server.server_ip, smb_server.share_name, smb_file_path, smb_server.username, smb_server.password)
 
-                for line in file:
+            if not file_obj:
+                continue
 
-                    event_type = line[26:28]
-                    try:
-                        timestamp = datetime.strptime(
-                            line[:21], "%y-%m-%d %H:%M:%S:%f")
-                    except:
-                        continue
-                    # Пропускаем уже обработанные строки
-                    if event_type != "TR" or (last_processed_timestamp and timestamp <= last_processed_timestamp):
-                        continue
+            for line in file_obj:
+                line = line.decode("utf-8", errors="ignore").strip()
+                if not line:
+                    continue
 
-                    pump_number, price, quantity, total_amount = parse_log_line(
-                        line)
-                    if quantity == 0 and total_amount == 0:
-                        continue
+                event_type = line[21:23]
+                try:
+                    timestamp = datetime.strptime(
+                        line[:21], "%y-%m-%d %H:%M:%S:%f")
+                except:
+                    continue
 
-                    pump = Pump.objects.filter(
-                        number=pump_number, organization=Orgs).first()
-                    if not pump:
-                        pump = Pump.objects.create(
-                            number=pump_number, organization=Orgs, ip_address="")
+                # Пропускаем уже обработанные строки
+                if event_type != "TR" or (timestamp <= last_processed_timestamp):
+                    continue
 
-                    # get the latest plate recognition
-                    last_record = PlateRecognition.objects.filter(
-                        recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(minutes=5), pump=pump).order_by('-recognized_at').first()
+                pump_number, price, quantity, total_amount = parse_log_line(
+                    line)
+                if quantity == 0 and total_amount == 0:
+                    continue
 
-                    # Сохраняем данные в базе данных
-                    new_log = FuelSale(
-                        date=timestamp,
-                        organization=Orgs,
-                        quantity=quantity,
-                        price=price,
-                        total_amount=total_amount,
-                        pump=pump,
-                        plate_recognition=last_record
-                    )
-                    new_logs.append(new_log)
+                pump, _ = Pump.objects.get_or_create(number=pump_number, organization=org, defaults={
+                                                     "number": pump_number, "ip_address": "", "organization": org})
 
-                    if last_record != None:
-                        pass
-                        send_sales_info_to_tg(new_log)
+                # get the latest plate recognition
+                last_record = PlateRecognition.objects.filter(
+                    recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(minutes=5), pump=pump).order_by('-recognized_at').first()
+
+                # Сохраняем данные в базе данных
+                new_log = FuelSale(
+                    date=timestamp,
+                    organization=org,
+                    quantity=quantity,
+                    price=price,
+                    total_amount=total_amount,
+                    pump=pump,
+                    plate_recognition=last_record
+                )
+                new_logs.append(new_log)
+
+                if last_record != None:
+                    pass
+                    # send_sales_info_to_tg(new_log)
 
         except FileNotFoundError as e:
             logger.error(f"Ошибка при чтении {file_path}: {e}")
 
         if new_logs:
-            FuelSale.objects.bulk_create(new_logs)
-            # Обновляем метаданные
-            if not last_metadata:
-                last_metadata = LogProcessingMetadata()
-            last_metadata.last_processed_timestamp = new_logs[-1].date
-            last_metadata.organization = Orgs
-            last_metadata.save()
+            with transaction.atomic():
+                FuelSale.objects.bulk_create(new_logs)
+                org.last_processed_timestamp = new_logs[-1].datetime
+                org.save()
+
+        # if last_date < current_date - timedelta(days=2):
+        #     org.last_processed_timestamp = last_date + timedelta(days=1)
+        #     org.save()
 
 
 def send_sales_info_to_tg(new_log):

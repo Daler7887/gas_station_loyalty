@@ -142,4 +142,14 @@ lang_dict = {
         "Noto'g'ri avtomobil raqami. Iltimos, qaytadan kiriting.",
         "Неверный номер автомобиля. Пожалуйста, введите снова."
     ],
+    "started fueling": [
+        "🚗⛽ Siz yoqilg'i shoxobchasiga kirdingiz!\n\
+Hisobingizda <b>{}</b> so‘m bonus bor. 🎁\n\
+\n\
+✨ Siz ularni hoziroq yoki keyingi to‘lovda ishlatishingiz mumkin!",
+        "🚗⛽ Вы заехали на заправку!\n\
+На вашем балансе <b>{}</b> сум бонусов. 🎁\n\
+\n\
+✨ Вы можете использовать их прямо сейчас или при следующей оплате!",
+    ],
 }

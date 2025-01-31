@@ -1,15 +1,19 @@
-from django.db.models import Sum
 from bot.models import Bot_user
-from bot.utils.bot_functions import bot_send_message
+from bot.utils.bot_functions import bot
 from asgiref.sync import async_to_sync
+from bot.services.language_service import get_word 
 import re
 
 
 def inform_user_bonus(user: Bot_user):
     bonus = user.car.loyalty_points
-    msg = "Начался процесс заправки вашего автомобиля. На вашем балансе бонус в размере {} сум".format(
+    msg = async_to_sync(get_word)('started fueling', chat_id=user.user_id).format(
         bonus)
-    bot_send_message(user.user_id, msg)
+    async_to_sync(bot.send_message)(
+        chat_id=user.user_id,
+        text=msg,
+        parse_mode="HTML"
+    )
 
 
 async def validate_plate_number(plate_number: str):
