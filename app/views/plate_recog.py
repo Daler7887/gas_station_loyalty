@@ -8,6 +8,9 @@ import xmltodict
 import base64
 from bot.utils.clients import inform_user_bonus
 from bot.models import Bot_user
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PlateRecognitionView(APIView):
@@ -36,7 +39,6 @@ class PlateRecognitionView(APIView):
 
         # plate_number = recognize_plate(base64_image)
         # plate_number = read_plate(image_path1).upper()
-        print(event['ipAddress'])
 
         pump = Pump.objects.filter(ip_address=event['ipAddress']).first()
         record_exists = PlateRecognition.objects.filter(
@@ -48,7 +50,7 @@ class PlateRecognitionView(APIView):
         # plate_number = recognize_plate(base64_image)
         plate_number = event['ANPR']['licensePlate']
         if pump and pump.alpr:
-            plate_number = read_plate(image_path1).upper()
+            plate_number = read_plate(image_path).upper()
 
         new_record = PlateRecognition(
             pump=pump,
@@ -61,11 +63,10 @@ class PlateRecognitionView(APIView):
 
         try:
             users = Bot_user.objects.filter(car__plate_number=plate_number)
-            print(plate_number)
             for user in users:
                 inform_user_bonus(user)
         except Exception as e:
-            print(e)
+            logger.error(f"Ошибка при отправке уведомления: {e} \n Plate number: {plate_number}")
 
         return Response(status=status.HTTP_200_OK)
 

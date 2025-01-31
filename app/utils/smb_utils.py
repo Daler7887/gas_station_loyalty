@@ -1,6 +1,8 @@
 from smb.SMBConnection import SMBConnection
 from io import BytesIO
+import logging
 
+logger = logging.getLogger(__name__)
 
 def read_file(server_ip, share_name, file_path, username="", password=""):
     """Открывает соединение, читает файл и сразу закрывает соединение"""
@@ -25,5 +27,5 @@ def read_file(server_ip, share_name, file_path, username="", password=""):
         return file_obj
 
     except Exception as e:
-        print(f"Ошибка при подключении к {server_ip}: {e}")
+        logger.error(f"Ошибка при чтении файла {file_path}: {e}")
         return None
