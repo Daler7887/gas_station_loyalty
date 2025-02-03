@@ -10,6 +10,7 @@ from app.views import (
     main,
     plate_recog
 )
+from .views.main import DashboardData
 
 urlpatterns = [
     # login
@@ -23,6 +24,6 @@ urlpatterns = [
          name='camera-data-upload'),
     # files
     re_path(r'^files/(?P<path>.*)$', main.get_file),
-
+    path('api/analytics/', DashboardData.as_view(), name='dashboard-data'),
 
 ]

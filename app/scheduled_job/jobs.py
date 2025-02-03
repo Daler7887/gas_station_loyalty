@@ -90,7 +90,7 @@ def process_fuel_sales_log():
 
                 # get the latest plate recognition
                 last_record = PlateRecognition.objects.filter(
-                    recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(minutes=5), pump=pump).order_by('-recognized_at').first()
+                    recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(minutes=30), pump=pump).order_by('-recognized_at').first()
                 new_client = not Car.objects.filter(plate_number=last_record.number).exists() if last_record else False
                 # Сохраняем данные в базе данных
                 new_log = FuelSale(
