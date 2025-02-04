@@ -29,6 +29,8 @@ class Pump(models.Model):
         Organization, on_delete=models.CASCADE, null=True)
     public_ip = models.CharField(max_length=15, null=True, blank=True)
     public_port = models.IntegerField(null=True, blank=True)
+    login = models.CharField(max_length=50, null=True, blank=True)
+    password = models.CharField(max_length=50, null=True, blank=True)
     alpr = models.BooleanField(default=False)
 
     def __str__(self):
