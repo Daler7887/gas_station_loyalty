@@ -4,9 +4,7 @@ from core.settings import BASE_DIR
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from app.models import FuelSale, LoyaltyPointsTransaction
-from django.db.models import Sum, Avg, Count
-from django.utils import timezone
+from app.utils.queries import get_year_sales, get_new_customers, get_bonuses_earned, get_bonuses_spent
 
 
 def get_file(request, path):
@@ -16,52 +14,59 @@ def get_file(request, path):
 
 class DashboardData(APIView):
     def get(self, request):
-        current_month = timezone.now().month
-        last_month = (timezone.now().replace(day=1) - timezone.timedelta(days=1)).month
+        # sales data
+        year_sales = get_year_sales()
+        sales_month_count = year_sales.count()
+        this_month_sales = year_sales.last().get('total', 0)
+        sales_increase_percent = 0
+        if sales_month_count > 1:
+            last_month_sales = year_sales[sales_month_count - 2].get('total', 0)
+            sales_increase_percent = ((this_month_sales - last_month_sales) / last_month_sales) * 100
 
-        sales_query = FuelSale.objects.filter(date__month=current_month)
-        last_month_sales_query = FuelSale.objects.filter(date__month=last_month)
-        new_customers_query = FuelSale.objects.filter(date__month=current_month, new_client=True)
-        last_month_new_customers_query = FuelSale.objects.filter(date__month=last_month, new_client=True)
-        bonuses_earned_query = LoyaltyPointsTransaction.objects.filter(transaction_type='accrual', created_at__month=current_month)
-        last_month_bonuses_earned_query = LoyaltyPointsTransaction.objects.filter(transaction_type='accrual', created_at__month=last_month)
-        bonuses_spent_query = LoyaltyPointsTransaction.objects.filter(transaction_type='redeem', created_at__month=current_month)
-        last_month_bonuses_spent_query = LoyaltyPointsTransaction.objects.filter(transaction_type='redeem', created_at__month=last_month)
+        new_customers = get_new_customers()
+        new_customers_count = new_customers.count()
+        this_month_new_customers = new_customers.last().get('total', 0)
+        new_customers_percent = 0
+        if new_customers_count > 1:
+            last_month_new_customers = new_customers[new_customers_count - 2].get('total', 0)
+            new_customers_percent = ((this_month_new_customers - last_month_new_customers) / last_month_new_customers) * 100
 
-        sales = sales_query.aggregate(total=Sum('total_amount'))
-        last_month_sales = last_month_sales_query.aggregate(total=Sum('total_amount'))
-        new_customers = new_customers_query.aggregate(total=Count('new_client'))
-        last_month_new_customers = last_month_new_customers_query.aggregate(total=Count('new_client'))
-        bonuses_earned = bonuses_earned_query.aggregate(total=Sum('points'))
-        last_month_bonuses_earned = last_month_bonuses_earned_query.aggregate(total=Sum('points'))
-        bonuses_spent = bonuses_spent_query.aggregate(total=Sum('points'))
-        last_month_bonuses_spent = last_month_bonuses_spent_query.aggregate(total=Sum('points'))
+        bonuses_earned = get_bonuses_earned()
+        bonuses_earned_count = bonuses_earned.count()
+        this_month_bonuses_earned = bonuses_earned.last().get('total', 0)
+        bonuses_earned_percent = 0
+        if bonuses_earned_count > 1:
+            last_month_bonuses_earned = bonuses_earned[bonuses_earned_count - 2].get('total', 0)
+            bonuses_earned_percent = ((this_month_bonuses_earned - last_month_bonuses_earned) / last_month_bonuses_earned) * 100
 
-        sales_percent = ((sales['total'] or 0) - (last_month_sales['total'] or 0)) / (last_month_sales['total'] or 1) * 100
-        new_customers_percent = ((new_customers['total'] or 0) - (last_month_new_customers['total'] or 0)) / (last_month_new_customers['total'] or 1) * 100
-        bonuses_earned_percent = ((bonuses_earned['total'] or 0) - (last_month_bonuses_earned['total'] or 0)) / (last_month_bonuses_earned['total'] or 1) * 100
-        bonuses_spent_percent = ((bonuses_spent['total'] or 0) - (last_month_bonuses_spent['total'] or 0)) / (last_month_bonuses_spent['total'] or 1) * 100
+        bonuses_spent = get_bonuses_spent()
+        bonuses_spent_count = bonuses_spent.count()
+        this_month_bonuses_spent = bonuses_spent.last().get('total', 0)
+        bonuses_spent_percent = 0
+        if bonuses_spent_count > 1:
+            last_month_bonuses_spent = bonuses_spent[bonuses_spent_count - 2].get('total', 0)
+            bonuses_spent_percent = ((this_month_bonuses_spent - last_month_bonuses_spent) / last_month_bonuses_spent) * 100
 
         data = {
             "sales": {
-                "total": sales['total'] or 0,
-                "percent": sales_percent,
-                "series": list(sales_query.values('date__month').annotate(total=Sum('total_amount')).order_by('date__month'))   
+                "total": this_month_sales,
+                "percent": sales_increase_percent,
+                "series": year_sales
             },
             "newCustomers": {
-                "total": new_customers['total'] or 0,
+                "total": this_month_new_customers,
                 "percent": new_customers_percent,
-                "series": list(FuelSale.objects.values('date__month').annotate(total=Count('new_client')).order_by('date__month'))
+                "series": new_customers
             },
             "bonusesEarned": {
-                "total": bonuses_earned['total'] or 0,
+                "total": this_month_bonuses_earned,
                 "percent": bonuses_earned_percent,
-                "series": list(LoyaltyPointsTransaction.objects.filter(transaction_type='accrual').values('created_at__month').annotate(total=Sum('points')).order_by('created_at__month'))
+                "series": bonuses_earned
             },
             "bonusesSpent": {
-                "total": bonuses_spent['total'] or 0,
+                "total": this_month_bonuses_spent,
                 "percent": bonuses_spent_percent,
-                "series": list(LoyaltyPointsTransaction.objects.filter(transaction_type='redeem').values('created_at__month').annotate(total=Sum('points')).order_by('created_at__month'))
+                "series": bonuses_spent
             }
         }
 
