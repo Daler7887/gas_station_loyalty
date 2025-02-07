@@ -3,6 +3,7 @@ from dateutil.relativedelta import relativedelta
 from django.db.models import Sum, Count
 from django.db.models.functions import TruncMonth
 from app.models import FuelSale, LoyaltyPointsTransaction
+from django.contrib.admin.models import LogEntry
 
 
 def get_year_sales():
@@ -98,3 +99,25 @@ def get_bonuses_spent():
     )
 
     return queryset
+
+
+def get_logs(user):
+    actions_color = {
+        1: 2,
+        2: 4,
+        3: 5,
+    }
+    if user.is_superuser:
+        logs = LogEntry.objects.all().order_by('-action_time')[:5]
+    else:
+        logs = LogEntry.objects.filter(user=user).order_by('-action_time')[:5]
+    data = [
+        {
+            "user": log.user.username,
+            "action_time": log.action_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "object_repr": log.object_repr,
+            "action_id": actions_color[log.action_flag],
+        }
+        for log in logs
+    ]
+    return data

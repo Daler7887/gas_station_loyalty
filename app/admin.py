@@ -5,7 +5,7 @@ from app.models import *
 # Register your models here.
 @admin.register(PlateRecognition)
 class PlateNumberAdmin(admin.ModelAdmin):
-    list_display = ('pump', 'number', 'recognized_at', 'image1', 'image2')
+    list_display = ('pump', 'number', 'recognized_at', 'image1', 'image2', 'is_processed')
     search_fields = ('number', )
     list_filter = ('pump', 'recognized_at',)
 

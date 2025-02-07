@@ -10,7 +10,9 @@ from app.views import (
     main,
     plate_recog
 )
-from .views.main import DashboardData
+from .views.main import DashboardData, UserInfoView
+from app.views.bot_users import BotUserListView
+from app.views.fuel_sales import FuelSaleListView
 
 urlpatterns = [
     # login
@@ -25,5 +27,7 @@ urlpatterns = [
     # files
     re_path(r'^files/(?P<path>.*)$', main.get_file),
     path('api/analytics/', DashboardData.as_view(), name='dashboard-data'),
-
+    path('api/user-info/', UserInfoView.as_view(), name='user-info'),
+    path('api/bot-users/', BotUserListView.as_view(), name='bot-users'),
+    path('api/fuel-sales/', FuelSaleListView.as_view(), name='fuel-sales'),
 ]

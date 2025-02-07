@@ -44,6 +44,7 @@ class PlateRecognition(models.Model):
     recognized_at = models.DateTimeField()
     image1 = models.ImageField(upload_to='car_images/', null=True)
     image2 = models.ImageField(upload_to='car_images/', null=True)
+    is_processed = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-recognized_at']
@@ -94,7 +95,7 @@ class FuelSale(models.Model):
         return 0
 
     def __str__(self):
-        return f"{self.organization.name} - {self.pump.number} - {self.total_amount}"
+        return f"Продажа #{self.id} - {self.organization} за {self.date.strftime('%d.%m.%Y %H:%M:%S')} на сумму {self.total_amount:.0f}"
 
 
 class LoyaltyPointsTransaction(models.Model):
@@ -127,7 +128,7 @@ class LoyaltyPointsTransaction(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.car} - {self.get_transaction_type_display()} {self.points} баллов"
+        return f"{self.get_transaction_type_display()} - {self.car.plate_number} - {self.points} б."
 
 
 class Car(models.Model):

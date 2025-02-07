@@ -41,6 +41,7 @@ def delete_old_files():
 
 
 def process_fuel_sales_log():
+    plate_templates = r'^(?:\d{2}[A-Za-z]\d{3}[A-Za-z]{2}|\d{5}[A-Za-z]{3}|\d{2}[A-Za-z]\d{6})$'
     logger.info('started processing')
     organizations = Organization.objects.select_related('server').all()
     for org in organizations:
@@ -90,8 +91,15 @@ def process_fuel_sales_log():
 
                 # get the latest plate recognition
                 last_record = PlateRecognition.objects.filter(
-                    recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(minutes=30), pump=pump).order_by('-recognized_at').first()
-                new_client = not Car.objects.filter(plate_number=last_record.number).exists() if last_record else False
+                    recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(minutes=30), pump=pump, number__iregex=plate_templates, is_processed=False).order_by('-recognized_at').first()
+                if not last_record:
+                    last_record = PlateRecognition.objects.filter(recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(
+                        minutes=30), pump=pump, is_processed=False).order_by('-recognized_at').first()
+                if last_record:
+                    last_record.is_processed = True
+                    last_record.save()
+                new_client = not Car.objects.filter(
+                    plate_number=last_record.number).exists() if last_record else False
                 # Сохраняем данные в базе данных
                 new_log = FuelSale(
                     date=timestamp,
