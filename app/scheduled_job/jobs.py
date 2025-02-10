@@ -91,10 +91,10 @@ def process_fuel_sales_log():
 
                 # get the latest plate recognition
                 last_record = PlateRecognition.objects.filter(
-                    recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(minutes=30), pump=pump, number__iregex=plate_templates, is_processed=False).order_by('-recognized_at').first()
+                    recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(minutes=15), pump=pump, number__iregex=plate_templates, is_processed=False).order_by('-recognized_at').first()
                 if not last_record:
                     last_record = PlateRecognition.objects.filter(recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(
-                        minutes=30), pump=pump, is_processed=False).order_by('-recognized_at').first()
+                        minutes=15), pump=pump, is_processed=False).order_by('-recognized_at').first()
                 if last_record:
                     last_record.is_processed = True
                     last_record.save()
