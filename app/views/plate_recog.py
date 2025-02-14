@@ -2,12 +2,15 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
-from app.models import PlateRecognition, Pump
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from app.models import PlateRecognition, Pump, FuelSale
 from app.utils.alpr import read_plate
 import xmltodict
 import base64
 from bot.utils.clients import inform_user_bonus
 from bot.models import Bot_user
+import json
 import logging
 
 logger = logging.getLogger(__name__)
@@ -20,22 +23,19 @@ class PlateRecognitionView(APIView):
     def post(self, request, format=None):
         # return Response(status=status.HTTP_200_OK)
         # serializer = CameraDataSerializer(data=request.data)
-        if "anpr.xml" not in request.data.keys():
+        if "parkingSpaceDetection" not in request.data.keys():
             return Response(status=status.HTTP_200_OK)
-        parsed_data = xmltodict.parse(request.data["anpr.xml"])
 
-        event = parsed_data['EventNotificationAlert']
+        event = json.loads(request.data['parkingSpaceDetection'])
 
         image_path = None
         image_path1 = None
-        pictures_list = event['ANPR']['pictureInfoList']['pictureInfo']
 
-        if type(pictures_list) == dict:
-            image_path = request.data[pictures_list['fileName']]
-        elif len(pictures_list) > 0:
-            image_path = request.data[pictures_list[0]['fileName']]
-        if len(pictures_list) > 1:
-            image_path1 = request.data[pictures_list[1]['fileName']]
+        if "backgroundImage" in request.data.keys():
+            background_image = request.data['backgroundImage']
+            background_image_name = f'car_images/{background_image.name}.jpg'
+            image_path = default_storage.save(background_image_name, ContentFile(background_image.read()))
+        
 
         # plate_number = recognize_plate(base64_image)
         # plate_number = read_plate(image_path1).upper()
@@ -48,18 +48,34 @@ class PlateRecognitionView(APIView):
             return Response(status=status.HTTP_200_OK)
 
         # plate_number = recognize_plate(base64_image)
-        plate_number = event['ANPR']['licensePlate']
-        if pump and pump.alpr:
-            plate_number = read_plate(image_path).upper()
+        plate_number = event['PackingSpaceRecognition'][0]['plateNo']
+        if pump and pump.alpr and "vehicleBodyImage" in request.data.keys():
+            vehicle_body_image = request.data['vehicleBodyImage']
+            vehicle_body_image_name = f'car_images/{vehicle_body_image.name}.jpg'
+            image_path1 = default_storage.save(vehicle_body_image_name, ContentFile(vehicle_body_image.read()))
+            plate_number = read_plate(image_path1).upper()
 
-        new_record = PlateRecognition(
-            pump=pump,
-            number=plate_number,
-            image1=image_path,
-            image2=image_path1,
-            recognized_at=event['dateTime'][:19]
-        )
-        new_record.save()
+        event_type = event['PackingSpaceRecognition'][0]['vehicleEnterState']
+        if event_type == 'enter':
+            new_record = PlateRecognition(
+                pump=pump,
+                number=plate_number,
+                image1=image_path,
+                recognized_at=event['dateTime'][:19]
+            )
+            new_record.save()
+        else:
+            record = PlateRecognition.objects.filter(
+                pump=pump,exit_time=None, recognized_at__lte=event['dateTime'][:19]).first()
+            if not record:
+                return Response(status=status.HTTP_200_OK)
+            record.image2 = image_path
+            record.exit_time = event['dateTime'][:19]
+            record.save()
+            fuel_sale = FuelSale.objects.filter(plate_recognition__isnull=True, created_at__lte=record.exit_time, created_at__gte=record.recognized_at).first()
+            if fuel_sale:
+                fuel_sale.plate_recognition = record
+                fuel_sale.save()
 
         try:
             users = Bot_user.objects.filter(car__plate_number=plate_number)

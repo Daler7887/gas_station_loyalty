@@ -41,7 +41,8 @@ class Pump(models.Model):
 class PlateRecognition(models.Model):
     pump = models.ForeignKey(Pump, on_delete=models.CASCADE, null=True)
     number = models.CharField(max_length=20)
-    recognized_at = models.DateTimeField()
+    recognized_at = models.DateTimeField(verbose_name='Время заезда')
+    exit_time = models.DateTimeField(null=True, verbose_name='Время выезда')
     image1 = models.ImageField(upload_to='car_images/', null=True)
     image2 = models.ImageField(upload_to='car_images/', null=True)
     is_processed = models.BooleanField(default=False)
@@ -62,16 +63,23 @@ class FuelSale(models.Model):
     pump = models.ForeignKey(Pump, on_delete=models.CASCADE, null=True)
     plate_recognition = models.ForeignKey(
         PlateRecognition, on_delete=models.CASCADE, null=True)
+    plate_number = models.CharField(max_length=20, null=True)
     new_client = models.BooleanField(default=False)
+
+    @staticmethod
+    def fill_plate_numbers():
+        for sale in FuelSale.objects.filter(plate_recognition__isnull=False, plate_number__isnull=True):
+            sale.plate_number = sale.plate_recognition.number
+            sale.save()
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None  # Проверяем, создается ли новая запись
         super().save(*args, **kwargs)
 
-        if is_new and self.plate_recognition and self.organization.loyalty_program and self.plate_recognition.number.upper() != 'UNKNOWN' and self.plate_recognition.number.upper() != 'ERROR':
+        if is_new and self.plate_recognition and self.organization.loyalty_program and self.plate_number.upper() != 'UNKNOWN' and self.plate_number.upper() != 'ERROR' and self.plate_number != "" and self.plate_number is not None:
             # Рассчитываем баллы
             car, created = Car.objects.get_or_create(
-                plate_number=self.plate_recognition.number, defaults={'loyalty_points': 0})
+                plate_number=self.plate_number, defaults={'loyalty_points': 0})
             points = self.total_amount * self.get_points_percent() / 100
 
             # Создаем транзакцию начисления баллов

@@ -37,8 +37,6 @@ class BotUserSerializer(serializers.ModelSerializer):
 
 
 class FuelSaleSerializer(serializers.ModelSerializer):
-    plate_number = serializers.CharField(
-        source='plate_recognition.number', read_only=True)
     organization = serializers.StringRelatedField()
 
     class Meta:

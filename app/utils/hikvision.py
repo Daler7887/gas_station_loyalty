@@ -137,3 +137,36 @@ def start_manual_anpr(pump):
     except Exception as e:
         logger.info(f"Error during manual ANPR: {e}")
         return None
+
+
+def get_parking_plate_number(pump):
+    if pump.public_ip is None or pump.public_port is None:
+        return None
+    url = f"http://{pump.public_ip}:{pump.public_port}/ISAPI/Parking/channels/1/parkingStatus"
+    username = pump.login
+    password = pump.password
+
+    try:
+        response = requests.get(
+            url,
+            auth=HTTPDigestAuth(username, password),
+            verify=False
+        )
+
+        if response.status_code != 200:
+            print(f"Request failed with status code: {response.status_code}")
+            return None
+
+        # Parse XML response
+        xml_text = response.content.decode("utf-8", errors="replace")
+        parsed_data = xmltodict.parse(xml_text)
+
+        # Extract plateNo
+        parking_status_list = parsed_data.get("ParkingStatusCap", {}).get("ParkingStatusList", {}).get("ParkingStatus", {})
+        plate_no = parking_status_list.get("plateNo", None)
+        return plate_no
+
+    except Exception as e:
+        logger.info(f"Error during get parking status: {e}")
+        return None
+

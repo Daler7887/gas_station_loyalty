@@ -77,7 +77,7 @@ def process_fuel_sales_log():
                 )
                 new_logs.append(new_log)
 
-                if last_record != None:
+                if last_record is not None:
                     pass
                     # send_sales_info_to_tg(new_log)
 

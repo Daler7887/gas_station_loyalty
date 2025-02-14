@@ -5,9 +5,15 @@ from app.models import *
 # Register your models here.
 @admin.register(PlateRecognition)
 class PlateNumberAdmin(admin.ModelAdmin):
-    list_display = ('pump', 'number', 'recognized_at', 'image1', 'image2', 'is_processed')
+    list_display = ('pump', 'number', 'recognized_at',
+                    'exit_time', 'image1', 'image2', 'is_processed')
     search_fields = ('number', )
     list_filter = ('pump', 'recognized_at',)
+
+
+@admin.action(description='Fill plate numbers for old records')
+def fill_plate_numbers(modeladmin, request, queryset):
+    FuelSale.fill_plate_numbers()
 
 
 @admin.register(Organization)
@@ -18,8 +24,9 @@ class OrganizationAdmin(admin.ModelAdmin):
 @admin.register(FuelSale)
 class FuelSaleAdmin(admin.ModelAdmin):
     list_display = ('date', 'organization', 'pump', 'quantity',
-                    'price', 'total_amount', 'plate_recognition', 'new_client')
+                    'price', 'total_amount', 'plate_number', 'plate_recognition', 'new_client')
     list_filter = ('organization', 'pump')
+    actions = [fill_plate_numbers]
 
 
 @admin.register(Pump)

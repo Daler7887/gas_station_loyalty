@@ -5,11 +5,13 @@ from bot.utils.bot_functions import *
 from config import TG_GROUP_ID
 from bot.utils import bot
 from app.utils.smb_utils import read_file
+from app.utils.hikvision import get_parking_plate_number
 from apscheduler.schedulers.background import BackgroundScheduler
 import requests
 import logging
 import os
 import time
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -89,17 +91,18 @@ def process_fuel_sales_log():
                 pump, _ = Pump.objects.get_or_create(number=pump_number, organization=org, defaults={
                                                      "number": pump_number, "ip_address": "", "organization": org})
 
+                plate_recog = None
+                if datetime.now() - timestamp <= timedelta(minutes=1):
+                    plate_number = get_parking_plate_number(pump)
+                    print(plate_number)
+                else:
+                    plate_recog = PlateRecognition.objects.filter(
+                        pump=pump, recognized_at__lte=timestamp, exit_time__gte=timestamp).first()
+                    plate_number = plate_recog.number if plate_recog else None
+                    print(plate_number)
                 # get the latest plate recognition
-                last_record = PlateRecognition.objects.filter(
-                    recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(minutes=15), pump=pump, number__iregex=plate_templates, is_processed=False).order_by('-recognized_at').first()
-                if not last_record:
-                    last_record = PlateRecognition.objects.filter(recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(
-                        minutes=15), pump=pump, is_processed=False).order_by('-recognized_at').first()
-                if last_record:
-                    last_record.is_processed = True
-                    last_record.save()
                 new_client = not Car.objects.filter(
-                    plate_number=last_record.number).exists() if last_record else False
+                    plate_number=plate_number).exists() if plate_number is not None and re.match(plate_templates, plate_number) else False
                 # Сохраняем данные в базе данных
                 new_log = FuelSale(
                     date=timestamp,
@@ -108,7 +111,8 @@ def process_fuel_sales_log():
                     price=price,
                     total_amount=total_amount,
                     pump=pump,
-                    plate_recognition=last_record,
+                    plate_number = plate_number,
+                    plate_recog = plate_recog,
                     new_client=new_client
                 )
                 new_logs.append(new_log)
@@ -117,7 +121,7 @@ def process_fuel_sales_log():
                     org.last_processed_timestamp = timestamp
                     org.save()
 
-                if last_record != None:
+                if plate_number is not None and re.match(plate_templates, plate_number):
                     pass
                     # send_sales_info_to_tg(new_log)
 
@@ -139,7 +143,7 @@ def send_sales_info_to_tg(new_log):
 ⏰ Время: {new_log.date.strftime('%H:%M:%S')}
 🏢 Организация: {new_log.organization}
 
-🚗 Номер машины: <b>{new_log.plate_recognition.number}</b>
+🚗 Номер машины: <b>{new_log.plate_number}</b>
 🛢️ Колонка: {new_log.pump.number}
 
 ⛽ Количество топлива: {new_log.quantity} м/3
