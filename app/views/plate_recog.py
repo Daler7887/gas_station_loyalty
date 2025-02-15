@@ -77,7 +77,7 @@ class PlateRecognitionView(APIView):
                 record.exit_time = timestamp
                 record.save()
                 fuel_sale = FuelSale.objects.filter(
-                    plate_recognition__isnull=True, date__lte=record.exit_time, date__gte=record.recognized_at).first()
+                    plate_recognition__isnull=True, date__lte=record.exit_time, date__gte=record.recognized_at).last()
                 if fuel_sale:
                     fuel_sale.plate_recognition = record
                     fuel_sale.save()
