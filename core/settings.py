@@ -34,6 +34,7 @@ CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'app.apps.app',
     'bot.apps.bot',
     'rest_framework',
@@ -87,6 +88,12 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,                 # Ротация refresh-токенов
     # Блокировка старых refresh-токенов
     'BLACKLIST_AFTER_ROTATION': True,
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
 }
 
 ROOT_URLCONF = 'core.urls'

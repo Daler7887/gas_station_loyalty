@@ -9,6 +9,7 @@ __init__.py
 files
 staticfiles
 persistencebot
+material-kit-react
 frontend
 app/static/assets/*
 !app/static/assets/my
