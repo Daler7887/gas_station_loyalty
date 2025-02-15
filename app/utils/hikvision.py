@@ -27,7 +27,7 @@ def start_manual_anpr(pump):
 
         # Проверка статуса ответа
         if response.status_code != 200:
-            print(f"Request failed with status code: {response.status_code}")
+            logger.error(f"Request failed with status code: {response.status_code}")
             return
 
         content_type = response.headers.get("Content-Type", "")
@@ -86,7 +86,7 @@ def start_manual_anpr(pump):
         picture_info_list = anpr_data.get(
             "pictureInfoList", {}).get("pictureInfo")
         if not picture_info_list:
-            print("No pictureInfo found in XML")
+            logger.error("No pictureInfo found in XML")
             return
 
         # Может быть словарь (одно изображение) или список (несколько)
@@ -109,14 +109,14 @@ def start_manual_anpr(pump):
         date_time = event.get("dateTime")
 
         if not ip_address or not date_time:
-            print("No ipAddress or dateTime in XML")
+            logger.error("No ipAddress or dateTime in XML")
             return
 
         recognized_at = date_time[:19] if len(date_time) >= 19 else date_time
 
         pump = Pump.objects.filter(ip_address=ip_address).first()
         if not pump:
-            print(f"Pump with ip_address={ip_address} not found")
+            logger.error(f"Pump with ip_address={ip_address} not found")
             return
 
         plate_number = anpr_data.get("licensePlate")
@@ -154,7 +154,7 @@ def get_parking_plate_number(pump):
         )
 
         if response.status_code != 200:
-            print(f"Request failed with status code: {response.status_code}")
+            logger.error(f"Request failed with status code: {response.status_code}")
             return None
 
         # Parse XML response

@@ -94,12 +94,10 @@ def process_fuel_sales_log():
                 plate_recog = None
                 if datetime.now() - timestamp <= timedelta(minutes=1):
                     plate_number = get_parking_plate_number(pump)
-                    print(plate_number)
                 else:
                     plate_recog = PlateRecognition.objects.filter(
                         pump=pump, recognized_at__lte=timestamp, exit_time__gte=timestamp).first()
                     plate_number = plate_recog.number if plate_recog else None
-                    print(plate_number)
                 # get the latest plate recognition
                 new_client = not Car.objects.filter(
                     plate_number=plate_number).exists() if plate_number is not None and re.match(plate_templates, plate_number) else False
@@ -111,8 +109,8 @@ def process_fuel_sales_log():
                     price=price,
                     total_amount=total_amount,
                     pump=pump,
-                    plate_number = plate_number,
-                    plate_recog = plate_recog,
+                    plate_number=plate_number,
+                    plate_recognition=plate_recog,
                     new_client=new_client
                 )
                 new_logs.append(new_log)
