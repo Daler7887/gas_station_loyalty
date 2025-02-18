@@ -96,7 +96,7 @@ def process_fuel_sales_log():
                     plate_number = get_parking_plate_number(pump)
                 else:
                     plate_recog = PlateRecognition.objects.filter(
-                        pump=pump, recognized_at__lte=timestamp, exit_time__gte=timestamp).first()
+                        pump=pump, recognized_at__lte=timestamp, exit_time__gte=timestamp, exit_time__isnull=False).order_by('-recognized_at').first()
                     plate_number = plate_recog.number if plate_recog else None
                 # get the latest plate recognition
                 new_client = not Car.objects.filter(
