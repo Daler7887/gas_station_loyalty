@@ -29,13 +29,13 @@ def read_plate(uploaded_file):
             results = json_data.get('results', [])
             if results and 'plate' in results[0]:
                 plate = results[0]['plate']
-                return plate
+                return plate.upper()
             else:
                 # logger.warning("No plate found in the API response.")
-                return 'error'
+                return 'unknown'
         else:
             # `logger.error(f"API request failed with status {response.status_code}: {response.text}")
-            return 'error'
+            return 'unknown'
     except requests.exceptions.RequestException as e:
         # logger.error(f"An error occurred while making the API request: {e}")
-        return "error"
+        return "unknown"

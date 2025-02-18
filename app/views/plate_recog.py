@@ -12,6 +12,7 @@ from bot.utils.clients import inform_user_bonus
 from bot.models import Bot_user
 import json
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,7 @@ class PlateRecognitionView(APIView):
     def post(self, request, format=None):
         # return Response(status=status.HTTP_200_OK)
         # serializer = CameraDataSerializer(data=request.data)
+        plate_templates = r'^(?:\d{2}[A-Za-z]\d{3}[A-Za-z]{2}|\d{5}[A-Za-z]{3}|\d{2}[A-Za-z]\d{6})$'   
         try:
             if "parkingSpaceDetection" not in request.data.keys():
                 return Response(status=status.HTTP_200_OK)
@@ -46,14 +48,17 @@ class PlateRecognitionView(APIView):
             pump = Pump.objects.filter(ip_address=event['ipAddress']).first()
             # plate_number = recognize_plate(base64_image)
             plate_number = event['PackingSpaceRecognition'][0]['plateNo']
-            if pump and pump.alpr and "vehicleBodyImage" in request.data.keys():
+            event_type = event['PackingSpaceRecognition'][0]['vehicleEnterState']
+
+            if pump and "vehicleBodyImage" in request.data.keys() and event_type == 'enter' and not re.match(plate_templates, plate_number):
                 vehicle_body_image = request.data['vehicleBodyImage']
                 vehicle_body_image_name = f'car_images/{vehicle_body_image.name}.jpg'
                 image_path1 = default_storage.save(
                     vehicle_body_image_name, ContentFile(vehicle_body_image.read()))
-                plate_number = read_plate(image_path1).upper()
+                alpr_plate_recognition = read_plate(image_path1)
+                if re.match(plate_templates, alpr_plate_recognition):
+                    plate_number = alpr_plate_recognition
 
-            event_type = event['PackingSpaceRecognition'][0]['vehicleEnterState']
             if event_type == 'enter':
                 record_exists = PlateRecognition.objects.filter(
                     pump=pump, recognized_at=timestamp).exists()
@@ -70,7 +75,7 @@ class PlateRecognitionView(APIView):
                 new_record.save()
             else:
                 record = PlateRecognition.objects.filter(
-                    pump=pump, exit_time=None, recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(minutes=30)).order_by('-recognized_at').first()
+                    pump=pump, exit_time=None, recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(minutes=15)).order_by('-recognized_at').first()
                 if not record:
                     return Response(status=status.HTTP_200_OK)
                 record.image2 = image_path
@@ -79,6 +84,11 @@ class PlateRecognitionView(APIView):
                 fuel_sale = FuelSale.objects.filter(
                     pump=pump, plate_recognition__isnull=True, date__lte=record.exit_time, date__gte=record.recognized_at).first()
                 if fuel_sale:
+                    if not re.match(plate_templates, fuel_sale.plate_number):
+                        if re.match(plate_templates, record.number):
+                            fuel_sale.plate_number = record.number
+                        elif re.match(plate_templates, plate_number):
+                            fuel_sale.plate_number = plate_number
                     fuel_sale.plate_recognition = record
                     fuel_sale.save()
 
