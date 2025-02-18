@@ -76,11 +76,11 @@ class FuelSale(models.Model):
         is_new = self.pk is None  # Проверяем, создается ли новая запись
         super().save(*args, **kwargs)
 
-        if is_new and self.plate_recognition and self.organization.loyalty_program and self.plate_number.upper() != 'UNKNOWN' and self.plate_number.upper() != 'ERROR' and self.plate_number != "" and self.plate_number is not None:
+        points = self.total_amount * self.get_points_percent() / 100
+        if is_new and self.organization.loyalty_program and self.plate_number and points > 0:
             # Рассчитываем баллы
             car, created = Car.objects.get_or_create(
                 plate_number=self.plate_number, defaults={'loyalty_points': 0})
-            points = self.total_amount * self.get_points_percent() / 100
 
             # Создаем транзакцию начисления баллов
             LoyaltyPointsTransaction.objects.create(
