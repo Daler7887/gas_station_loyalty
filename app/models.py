@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from datetime import timedelta
 
 
 class Constant(models.Model):
@@ -13,10 +14,13 @@ class Constant(models.Model):
 
 class Organization(models.Model):
     name = models.CharField(max_length=255)
-    server = models.ForeignKey('SMBServer', on_delete=models.CASCADE, null=True)
+    server = models.ForeignKey(
+        'SMBServer', on_delete=models.CASCADE, null=True)
     log_path = models.CharField(max_length=255, default='')
-    last_processed_timestamp = models.DateTimeField(null=True, blank=True, verbose_name="Последняя обработка")
-    loyalty_program = models.BooleanField(default=False, verbose_name="Программа лояльности")
+    last_processed_timestamp = models.DateTimeField(
+        null=True, blank=True, verbose_name="Последняя обработка")
+    loyalty_program = models.BooleanField(
+        default=False, verbose_name="Программа лояльности")
 
     def __str__(self):
         return self.name
@@ -46,6 +50,7 @@ class PlateRecognition(models.Model):
     image1 = models.ImageField(upload_to='car_images/', null=True)
     image2 = models.ImageField(upload_to='car_images/', null=True)
     is_processed = models.BooleanField(default=False)
+    use_bonus = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-recognized_at']
@@ -60,6 +65,10 @@ class FuelSale(models.Model):
     quantity = models.FloatField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    discount_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
+    final_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
     pump = models.ForeignKey(Pump, on_delete=models.CASCADE, null=True)
     plate_recognition = models.ForeignKey(
         PlateRecognition, on_delete=models.CASCADE, null=True)
@@ -76,21 +85,45 @@ class FuelSale(models.Model):
         is_new = self.pk is None  # Проверяем, создается ли новая запись
         super().save(*args, **kwargs)
 
-        points = self.total_amount * self.get_points_percent() / 100
-        if is_new and self.organization.loyalty_program and self.plate_number and points > 0:
-            # Рассчитываем баллы
-            car, created = Car.objects.get_or_create(
-                plate_number=self.plate_number, defaults={'loyalty_points': 0})
+        if is_new and self.organization.loyalty_program and self.plate_number and self.plate_number != 'unknown':
+            use_bonus = PlateRecognition.objects.filter(
+                pump=self.pump, number=self.plate_number, use_bonus=True, recognized_at__gte=self.date - timedelta(minutes=60)).exists()
+            if use_bonus:
+                # Списываем баллы
+                car = Car.objects.get(plate_number=self.plate_number)
+                if car.loyalty_points <= 0:
+                    return
+                discount = min(car.loyalty_points, self.total_amount)
+                # Создаем транзакцию списания баллов
+                LoyaltyPointsTransaction.objects.create(
+                    car=car,
+                    fuel_sale=self,
+                    organization=self.organization,
+                    transaction_type='redeem',
+                    points=discount,
+                    description=f"Потрачено балов для покупки топлива на сумму {self.total_amount}",
+                    created_by=None
+                )
+                self.discount_amount = discount
+                self.final_amount = self.total_amount - discount
+                super().save(update_fields=['discount_amount', 'final_amount'])
+            else:
+                # Рассчитываем баллы
+                points = self.total_amount * self.get_points_percent() / 100
+                car, created = Car.objects.get_or_create(
+                    plate_number=self.plate_number, defaults={'loyalty_points': 0})
 
-            # Создаем транзакцию начисления баллов
-            LoyaltyPointsTransaction.objects.create(
-                car=car,
-                organization=self.organization,
-                transaction_type='accrual',
-                points=points,
-                description=f"Начисление за покупку топлива на сумму {self.total_amount}",
-                created_by=None
-            )
+                if points > 0:
+                    # Создаем транзакцию начисления баллов
+                    LoyaltyPointsTransaction.objects.create(
+                        car=car,
+                        fuel_sale=self,
+                        organization=self.organization,
+                        transaction_type='accrual',
+                        points=points,
+                        description=f"Начисление за покупку топлива на сумму {self.total_amount}",
+                        created_by=None
+                    )
 
     class Meta:
         ordering = ['-date']
@@ -112,6 +145,8 @@ class LoyaltyPointsTransaction(models.Model):
         ('redeem', 'Списание'),
     ]
 
+    fuel_sale = models.ForeignKey(
+        FuelSale, on_delete=models.CASCADE, null=True, blank=True, related_name='bonus_transactions')
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
     car = models.ForeignKey('Car', on_delete=models.CASCADE, null=True)
     transaction_type = models.CharField(
@@ -152,11 +187,15 @@ class Car(models.Model):
 
 
 class SMBServer(models.Model):
-    name = models.CharField(max_length=255, unique=True, verbose_name="Название сервера")
+    name = models.CharField(max_length=255, unique=True,
+                            verbose_name="Название сервера")
     server_ip = models.GenericIPAddressField(verbose_name="IP-адрес сервера")
-    share_name = models.CharField(max_length=255, verbose_name="Имя расшаренной папки")
-    username = models.CharField(max_length=255, blank=True, null=True, verbose_name="Логин")
-    password = models.CharField(max_length=255, blank=True, null=True, verbose_name="Пароль")
+    share_name = models.CharField(
+        max_length=255, verbose_name="Имя расшаренной папки")
+    username = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name="Логин")
+    password = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name="Пароль")
     active = models.BooleanField(default=True, verbose_name="Активен")
 
     def __str__(self):

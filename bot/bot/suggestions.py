@@ -2,8 +2,7 @@ from telegram import Update
 from telegram.ext import ConversationHandler
 from bot.services.language_service import get_word
 from bot.bot import *
-
-FEEDBACK_CHANNEL_ID = "-4628250515"
+from config import TG_GROUP_ID 
 
 
 async def handle_suggestions(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -23,14 +22,14 @@ async def receive_suggestions(update: Update, context: ContextTypes.DEFAULT_TYPE
     message_id = update.message.message_id
     suggestion = update.message.text
     forwarded_message = await context.bot.send_message(
-        chat_id=FEEDBACK_CHANNEL_ID,
+        chat_id=TG_GROUP_ID,
         text=f"Отзыв от \b{update.message.from_user.username}: \n {suggestion}"
     )
     await Feedback.objects.acreate(
         user_id=user_id,
         message_id=message_id,
         admin_message_id=forwarded_message.message_id,
-        admin_chat_id=FEEDBACK_CHANNEL_ID,
+        admin_chat_id=TG_GROUP_ID,
         category="Отзыв",
         text=text
     )
@@ -43,16 +42,18 @@ async def receive_suggestions(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def handle_feedback_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.message.chat.id != int(FEEDBACK_CHANNEL_ID):
+    if update.message.chat.id != int(TG_GROUP_ID):
         return
     if update.message.reply_to_message:
         admin_message_id = update.message.reply_to_message.message_id
         feedback = await Feedback.objects.aget(admin_message_id=admin_message_id)
 
         response_text = update.message.text
+        template = await get_word("message from admin", chat_id=feedback.user_id)
 
         await context.bot.send_message(
             chat_id=feedback.user_id,
-            text=await get_word("message from admin", chat_id=feedback.user_id) + f"\n {response_text}",
-            reply_to_message_id=feedback.message_id
+            text=template + f"\n {response_text}",
+            reply_to_message_id=feedback.message_id,
+            parse_mode=ParseMode.MARKDOWN
         )

@@ -92,7 +92,7 @@ def process_fuel_sales_log():
                                                      "number": pump_number, "ip_address": "", "organization": org})
 
                 plate_recog = None
-                if datetime.now() - timestamp <= timedelta(minutes=1):
+                if datetime.now() - timestamp <= timedelta(seconds=30):
                     plate_number = get_parking_plate_number(pump)
                 else:
                     plate_recog = PlateRecognition.objects.filter(
@@ -108,6 +108,7 @@ def process_fuel_sales_log():
                     quantity=quantity,
                     price=price,
                     total_amount=total_amount,
+                    final_amount=total_amount,
                     pump=pump,
                     plate_number=plate_number,
                     plate_recognition=plate_recog,

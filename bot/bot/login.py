@@ -2,6 +2,7 @@ from bot.bot import *
 from bot.utils.clients import validate_plate_number
 from app.models import Car
 
+PLATE_NUMBER_REGEX = r'^[A-Z]{2}\d{3}[A-Z]{2}$'
 
 async def _to_the_select_lang(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update_message_reply_text(
@@ -93,7 +94,7 @@ async def get_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # get phone number from message
     phone_number = update.message.contact.phone_number
     # check phone number is registred in the past or not
-    is_available = await filter_objects_sync(Bot_user, {'phone': phone_number})
+    is_available = await filter_objects_sync(Bot_user, {'phone': phone_number}, {'user_id': update.message.chat.id})
     if is_available:
         await update.message.reply_text(
             await get_word("number is logged", update)
@@ -114,7 +115,7 @@ async def get_plate_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(await get_word("incorrect plate number", update))
         return GET_PLATE_NUMBER
     obj = await get_object_by_update(update)
-    car = await sync_to_async(Car.objects.get_or_create)(plate_number=update.message.text)
+    car = await sync_to_async(Car.objects.get_or_create)(plate_number=update.message.text.upper())
     obj.car = car[0]
     await obj.asave()
     await main_menu(update, context)

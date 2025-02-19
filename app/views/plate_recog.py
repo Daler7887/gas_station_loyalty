@@ -24,7 +24,7 @@ class PlateRecognitionView(APIView):
     def post(self, request, format=None):
         # return Response(status=status.HTTP_200_OK)
         # serializer = CameraDataSerializer(data=request.data)
-        plate_templates = r'^(?:\d{2}[A-Za-z]\d{3}[A-Za-z]{2}|\d{5}[A-Za-z]{3}|\d{2}[A-Za-z]\d{6})$'   
+        plate_templates = r'^(?:\d{2}[A-Za-z]\d{3}[A-Za-z]{2}|\d{5}[A-Za-z]{3}|\d{2}[A-Za-z]\d{6})$'
         try:
             if "parkingSpaceDetection" not in request.data.keys():
                 return Response(status=status.HTTP_200_OK)
@@ -73,6 +73,13 @@ class PlateRecognitionView(APIView):
                     recognized_at=timestamp
                 )
                 new_record.save()
+                try:
+                    users = Bot_user.objects.filter(car__plate_number=plate_number)
+                    for user in users:
+                        inform_user_bonus(user, new_record.id)
+                except Exception as e:
+                    logger.error(
+                    f"Ошибка при отправке уведомления: {e} \n Plate number: {plate_number}")
             else:
                 record = PlateRecognition.objects.filter(
                     pump=pump, exit_time=None, recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(minutes=15)).order_by('-recognized_at').first()
@@ -86,7 +93,7 @@ class PlateRecognitionView(APIView):
                 if fuel_sale:
                     if not re.match(plate_templates, fuel_sale.plate_number):
                         if re.match(plate_templates, record.number):
-                            fuel_sale.plate_number = record.number
+                            fuel_sale.plate_number = record.number 
                         elif re.match(plate_templates, plate_number):
                             fuel_sale.plate_number = plate_number
                     fuel_sale.plate_recognition = record
@@ -95,14 +102,6 @@ class PlateRecognitionView(APIView):
         except Exception as e:
             logger.error(f"Internal Server Error: {e}")
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        try:
-            users = Bot_user.objects.filter(car__plate_number=plate_number)
-            for user in users:
-                inform_user_bonus(user)
-        except Exception as e:
-            logger.error(
-                f"Ошибка при отправке уведомления: {e} \n Plate number: {plate_number}")
 
         return Response(status=status.HTTP_200_OK)
 

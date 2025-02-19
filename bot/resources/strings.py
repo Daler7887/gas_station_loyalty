@@ -1,7 +1,6 @@
 lang_dict = {
 
-    "hello": """🤖 Xush kelibsiz!\n Bot tilini tanlang  🌎 \n\n ➖➖➖➖➖➖➖➖➖➖➖➖\n
-    👋 Добро пожаловать \n \U0001F1FA\U0001F1FF Выберите язык бота \U0001F1F7\U0001F1FA""",
+    "hello": """Xush kelibsiz! Yonilg‘i quyib, bonuslarga ega bo‘ling! ⛽🎉\n\n🚀 Endi bizda yonilg‘i quyish yanada foydali – har bir xaridingiz uchun ball to‘plashingiz va ularni chegirmalarga almashtirishingiz mumkin.\n\n⚠ Diqqat! Bot sinov rejimida ishlamoqda, to‘plangan ballardan hozircha foydalanib bo‘lmaydi.\n\nBot tilini tanlang \U0001F1FA\U0001F1FF\n\n ➖➖➖➖➖➖➖➖➖➖➖➖\nДобро пожаловать! Заправляйтесь и получайте бонусы! ⛽🎉\n\n🚀 Теперь заправляться у нас еще выгоднее – за каждую покупку вы получаете баллы, которые можно обменять на скидки. \n\n⚠ Внимание! Бот работает в тестовом режиме, начисленные баллы пока невозможно использовать.\n\n Выберите язык бота \U0001F1F7\U0001F1FA""",
     "added group": "Чат успешно добавлена ✅",
     "uz_ru": ["UZ 🇺🇿", "RU 🇷🇺"],
     "main menu": ["Asosiy menyu 🏠", "Главное меню 🏠"],
@@ -123,8 +122,8 @@ lang_dict = {
         "Изменить номер автомобиля 🚗"
     ],
     "user balance": [
-        "Sizning balansingiz: {} so'm",
-        "Ваш баланс: {} сум"
+        "💳 Sizning balansingiz: *{}* ball",
+        "💳 Ваш баланс: *{}* балов"
     ],
     "send new plate number": [
         "Yangi avtomobil raqamingizni yuboring!",
@@ -144,12 +143,21 @@ lang_dict = {
     ],
     "started fueling": [
         "🚗⛽ Siz yoqilg'i shoxobchasiga kirdingiz!\n\
-Hisobingizda <b>{}</b> so‘m bonus bor. 🎁\n\
+\nHisobingizda <b>{}</b> so‘m bonus bor. 🎁\n\
 \n\
 ✨ Siz ularni hoziroq yoki keyingi to‘lovda ishlatishingiz mumkin!",
         "🚗⛽ Вы заехали на заправку!\n\
-На вашем балансе <b>{}</b> сум бонусов. 🎁\n\
+\nНа вашем балансе <b>{}</b> сум бонусов. 🎁\n\
 \n\
 ✨ Вы можете использовать их прямо сейчас или при следующей оплате!",
     ],
+    "use bonus": [
+        "Bonuslardan foydalanish",
+        "Использовать бонусы"
+    ],
+    "success": [
+        "Muvaffaqiyatli",
+        "Успешно"
+    ]
 }
+

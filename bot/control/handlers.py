@@ -132,6 +132,8 @@ feedback_handler_answer = MessageHandler(
     filters.TEXT & filters.ChatType.GROUPS, suggestions.handle_feedback_response)
 
 handlers = [
+    CallbackQueryHandler(
+        main.handle_callback_query, pattern=r"^bonus_"),
     login_handler,
     settings_handler,  # Добавляем обработчик для меню настроек
     change_lang_handler,  # Добавляем обработчик для смены языка

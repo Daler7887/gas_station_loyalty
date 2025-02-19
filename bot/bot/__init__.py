@@ -43,7 +43,8 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 @sync_to_async
-def filter_objects_sync(model_class, filters):
-    return list(
-        model_class.objects.filter(**filters).values()
-    )
+def filter_objects_sync(model_class, filters, exclude):
+    query = model_class.objects.filter(**filters)
+    if exclude is not None:
+        query = query.exclude(**exclude)
+    return list(query.values())

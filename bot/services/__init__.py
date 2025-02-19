@@ -1,9 +1,10 @@
 from bot.models import *
+from django.db.models import Q
 from asgiref.sync import sync_to_async
 
 @sync_to_async
 def is_registered(id):
-    if Bot_user.objects.filter(user_id=id).exclude(phone=None):
+    if Bot_user.objects.filter(user_id=id).exclude(Q(phone=None) | Q(car=None)).exists():
         return True
     else:
         return False

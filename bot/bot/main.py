@@ -1,7 +1,8 @@
 from bot.bot import *
 from asgiref.sync import sync_to_async, async_to_sync
-from app.models import Car
+from app.models import Car, PlateRecognition
 from bot.utils.clients import validate_plate_number
+from telegram.ext import CallbackContext
 
 FEEDBACK_CHANNEL_ID = -1002144060952
 
@@ -53,7 +54,7 @@ async def get_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             balance = 0
         msg = await get_word('user balance', update)
-        await update.message.reply_text(msg.format(balance))
+        await update.message.reply_text(msg.format(balance), parse_mode=ParseMode.MARKDOWN_V2)
     except Bot_user.DoesNotExist:
         await update.message.reply_text('User does not exist.')
     await main_menu(update, context)
@@ -166,12 +167,16 @@ async def set_plate_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await settings_menu(update, context)
     return ConversationHandler.END
 
-# async def reply_to_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     if str(update.channel_post.chat.id) == FEEDBACK_CHANNEL_ID and update.channel_post.reply_to_message:
-#         user_id = update.channel_post.reply_to_message.forward_origin.sender_user.id
-#         if user_id:
-#             # Отправка ответа пользователю
-#             await context.bot.send_message(
-#                 chat_id=user_id,
-#                 text=update.channel_post.text
-#             )
+
+async def handle_callback_query(update, context: CallbackContext):
+    query = update.callback_query
+    data = query.data
+
+    if data.startswith('bonus_'):
+        record_id = data.split('_')[1]
+        plate_recognition = await PlateRecognition.objects.aget(id=record_id)
+        plate_recognition.use_bonus = True
+        await plate_recognition.asave()
+        await query.edit_message_reply_markup(reply_markup=None)
+        await query.answer(await get_word('success', query))
+        await query.message.edit_text(query.message.text + "\n\n" + await get_word("use bonus", query) + " ✅")
