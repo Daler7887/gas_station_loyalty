@@ -8,8 +8,9 @@ bot/migrations
 __init__.py
 files
 staticfiles
-persistencebot
 frontend
+static
+persistencebot
 material-kit-react
 app/static/assets/*
 !app/static/assets/my
