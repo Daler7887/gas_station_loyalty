@@ -2,17 +2,16 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-from app.models import PlateRecognition, Pump, FuelSale
+from app.models import PlateRecognition, Pump
 from app.utils.alpr import read_plate
-from datetime import timedelta, datetime
+import xmltodict
 import base64
 from bot.utils.clients import inform_user_bonus
 from bot.models import Bot_user
-import json
-import logging
+from app.utils.queries import PLATE_NUMBER_TEMPLATE
 import re
+from datetime import datetime, timedelta
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -24,84 +23,59 @@ class PlateRecognitionView(APIView):
     def post(self, request, format=None):
         # return Response(status=status.HTTP_200_OK)
         # serializer = CameraDataSerializer(data=request.data)
-        plate_templates = r'^(?:\d{2}[A-Za-z]\d{3}[A-Za-z]{2}|\d{5}[A-Za-z]{3}|\d{2}[A-Za-z]\d{6})$'
+        if "anpr.xml" not in request.data.keys():
+            return Response(status=status.HTTP_200_OK)
+        parsed_data = xmltodict.parse(request.data["anpr.xml"])
+
+        event = parsed_data['EventNotificationAlert']
+
+        image_path = None
+        image_path1 = None
+        pictures_list = event['ANPR']['pictureInfoList']['pictureInfo']
+
+        if type(pictures_list) == dict:
+            image_path = request.data[pictures_list['fileName']]
+        elif len(pictures_list) > 0:
+            image_path = request.data[pictures_list[0]['fileName']]
+        if len(pictures_list) > 1:
+            image_path1 = request.data[pictures_list[1]['fileName']]
+
+        # plate_number = recognize_plate(base64_image)
+        # plate_number = read_plate(image_path1).upper()
+
+        pump = Pump.objects.filter(ip_address=event['ipAddress']).first()
+        record_exists = PlateRecognition.objects.filter(
+            pump=pump, recognized_at=event['dateTime'][:19]).exists()
+
+        if record_exists:
+            return Response(status=status.HTTP_200_OK)
+
+        # plate_number = recognize_plate(base64_image)
+        plate_number = event['ANPR']['licensePlate']
+        if pump and not re.match(PLATE_NUMBER_TEMPLATE, plate_number):
+            plate_number = read_plate(image_path).upper()
+        
+        timestamp = datetime.strptime(event['dateTime'][:19], '%Y-%m-%dT%H:%M:%S')
+        same_plate = PlateRecognition.objects.filter(
+            pump=pump, number=plate_number, recognized_at__gte=timestamp-timedelta(minutes=15)).exists()
+        if same_plate:
+            return Response(status=status.HTTP_200_OK)
+
+        new_record = PlateRecognition(
+            pump=pump,
+            number=plate_number,
+            image1=image_path,
+            image2=image_path1,
+            recognized_at=timestamp,
+        )
+        new_record.save()
+
         try:
-            if "parkingSpaceDetection" not in request.data.keys():
-                return Response(status=status.HTTP_200_OK)
-
-            event = json.loads(request.data['parkingSpaceDetection'])
-
-            image_path = None
-            image_path1 = None
-
-            if "backgroundImage" in request.data.keys():
-                background_image = request.data['backgroundImage']
-                background_image_name = f'car_images/{background_image.name}.jpg'
-                image_path = default_storage.save(
-                    background_image_name, ContentFile(background_image.read()))
-
-            # plate_number = recognize_plate(base64_image)
-            # plate_number = read_plate(image_path1).upper()
-
-            timestamp = datetime.strptime(
-                event['dateTime'][:19], "%Y-%m-%dT%H:%M:%S")
-            pump = Pump.objects.filter(ip_address=event['ipAddress']).first()
-            # plate_number = recognize_plate(base64_image)
-            plate_number = event['PackingSpaceRecognition'][0]['plateNo']
-            event_type = event['PackingSpaceRecognition'][0]['vehicleEnterState']
-
-            if pump and "vehicleBodyImage" in request.data.keys() and event_type == 'enter' and not re.match(plate_templates, plate_number):
-                vehicle_body_image = request.data['vehicleBodyImage']
-                vehicle_body_image_name = f'car_images/{vehicle_body_image.name}.jpg'
-                image_path1 = default_storage.save(
-                    vehicle_body_image_name, ContentFile(vehicle_body_image.read()))
-                alpr_plate_recognition = read_plate(image_path1)
-                if re.match(plate_templates, alpr_plate_recognition):
-                    plate_number = alpr_plate_recognition
-
-            if event_type == 'enter':
-                record_exists = PlateRecognition.objects.filter(
-                    pump=pump, recognized_at=timestamp).exists()
-
-                if record_exists:
-                    return Response(status=status.HTTP_200_OK)
-
-                new_record = PlateRecognition(
-                    pump=pump,
-                    number=plate_number,
-                    image1=image_path,
-                    recognized_at=timestamp
-                )
-                new_record.save()
-                try:
-                    users = Bot_user.objects.filter(car__plate_number=plate_number)
-                    for user in users:
-                        inform_user_bonus(user, new_record.id)
-                except Exception as e:
-                    logger.error(
-                    f"Ошибка при отправке уведомления: {e} \n Plate number: {plate_number}")
-            else:
-                record = PlateRecognition.objects.filter(
-                    pump=pump, exit_time=None, recognized_at__lte=timestamp, recognized_at__gte=timestamp - timedelta(minutes=15)).order_by('-recognized_at').first()
-                if not record:
-                    return Response(status=status.HTTP_200_OK)
-                record.image2 = image_path
-                record.exit_time = timestamp
-                record.save()
-                fuel_sale = FuelSale.objects.filter(
-                    pump=pump, plate_recognition__isnull=True, date__lte=record.exit_time, date__gte=record.recognized_at).first()
-                if fuel_sale:
-                    if not re.match(plate_templates, fuel_sale.plate_number):
-                        if re.match(plate_templates, record.number):
-                            fuel_sale.plate_number = record.number 
-                        elif re.match(plate_templates, plate_number):
-                            fuel_sale.plate_number = plate_number
-                    fuel_sale.plate_recognition = record
-                    fuel_sale.save()
-
+            users = Bot_user.objects.filter(car__plate_number=plate_number)
+            for user in users:
+                inform_user_bonus(user)
         except Exception as e:
-            logger.error(f"Internal Server Error: {e}")
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.error(f"Ошибка при отправке уведомления: {e} \n Plate number: {plate_number}")
 
         return Response(status=status.HTTP_200_OK)
 

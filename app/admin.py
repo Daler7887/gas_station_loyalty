@@ -24,7 +24,7 @@ class OrganizationAdmin(admin.ModelAdmin):
 @admin.register(FuelSale)
 class FuelSaleAdmin(admin.ModelAdmin):
     list_display = ('date', 'organization', 'pump', 'quantity',
-                    'price', 'total_amount', 'discount_amount', 'final_amount', 'plate_number', 'new_client')
+                    'price', 'total_amount', 'discount_amount', 'final_amount', 'plate_number', 'plate_recognition','new_client')
     list_filter = ('organization', 'pump')
     actions = [fill_plate_numbers]
 

@@ -7,6 +7,7 @@ from bot.utils import bot
 from app.utils.smb_utils import read_file
 from app.utils.hikvision import get_parking_plate_number
 from apscheduler.schedulers.background import BackgroundScheduler
+from app.utils.queries import PLATE_NUMBER_TEMPLATE as plate_templates
 import requests
 import logging
 import os
@@ -43,7 +44,6 @@ def delete_old_files():
 
 
 def process_fuel_sales_log():
-    plate_templates = r'^(?:\d{2}[A-Za-z]\d{3}[A-Za-z]{2}|\d{5}[A-Za-z]{3}|\d{2}[A-Za-z]\d{6})$'
     logger.info('started processing')
     organizations = Organization.objects.select_related('server').all()
     for org in organizations:
@@ -91,13 +91,10 @@ def process_fuel_sales_log():
                 pump, _ = Pump.objects.get_or_create(number=pump_number, organization=org, defaults={
                                                      "number": pump_number, "ip_address": "", "organization": org})
 
-                plate_recog = None
-                if datetime.now() - timestamp <= timedelta(seconds=30):
-                    plate_number = get_parking_plate_number(pump)
-                else:
-                    plate_recog = PlateRecognition.objects.filter(
-                        pump=pump, recognized_at__lte=timestamp, exit_time__gte=timestamp, exit_time__isnull=False).order_by('-recognized_at').first()
-                    plate_number = plate_recog.number if plate_recog else None
+                plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), is_processed=False, number__regex=plate_templates).order_by('-recognized_at').first()
+                if plate_recog is None:
+                    plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), is_processed=False).order_by('-recognized_at').first()
+                plate_number = plate_recog.number if plate_recog else None
                 # get the latest plate recognition
                 new_client = not Car.objects.filter(
                     plate_number=plate_number).exists() if plate_number is not None and re.match(plate_templates, plate_number) else False
@@ -117,6 +114,9 @@ def process_fuel_sales_log():
                 new_logs.append(new_log)
                 with transaction.atomic():
                     new_log.save()
+                    if plate_recog:
+                        plate_recog.is_processed = True
+                        plate_recog.save()
                     org.last_processed_timestamp = timestamp
                     org.save()
 
