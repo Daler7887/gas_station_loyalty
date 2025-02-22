@@ -54,8 +54,9 @@ class PlateRecognitionView(APIView):
         plate_number = event['ANPR']['licensePlate']
         if pump and not re.match(PLATE_NUMBER_TEMPLATE, plate_number):
             plate_number = read_plate(image_path).upper()
-        
-        timestamp = datetime.strptime(event['dateTime'][:19], '%Y-%m-%dT%H:%M:%S')
+
+        timestamp = datetime.strptime(
+            event['dateTime'][:19], '%Y-%m-%dT%H:%M:%S')
         same_plate = PlateRecognition.objects.filter(
             pump=pump, number=plate_number, recognized_at__gte=timestamp-timedelta(minutes=15)).exists()
         if same_plate:
@@ -75,7 +76,8 @@ class PlateRecognitionView(APIView):
             for user in users:
                 inform_user_bonus(user)
         except Exception as e:
-            logger.error(f"Ошибка при отправке уведомления: {e} \n Plate number: {plate_number}")
+            logger.error(
+                f"Ошибка при отправке уведомления: {e} \n Plate number: {plate_number}")
 
         return Response(status=status.HTTP_200_OK)
 
