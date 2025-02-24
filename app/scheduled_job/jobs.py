@@ -92,10 +92,17 @@ def process_fuel_sales_log():
                                                      "number": pump_number, "ip_address": "", "organization": org})
 
                 plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), is_processed=False, number__regex=plate_templates).order_by('-recognized_at').first()
+
+                # Если нет подходящих по шаблону, берём последний
                 if plate_recog is None:
                     plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), is_processed=False).order_by('-recognized_at').first()
+
+                # Если нет последнего, берём предыдущую продажу
+                if plate_recog is None:
+                    plate_recog = FuelSale.objects.filter(pump=pump, date__gte=timestamp-timedelta(minutes=4), date__lte=timestamp).order_by('-date').first().plate_recognition
+
                 plate_number = plate_recog.number if plate_recog else None
-                # get the latest plate recognition
+
                 new_client = not Car.objects.filter(
                     plate_number=plate_number).exists() if plate_number is not None and re.match(plate_templates, plate_number) else False
                 # Сохраняем данные в базе данных

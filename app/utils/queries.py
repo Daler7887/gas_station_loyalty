@@ -11,7 +11,7 @@ import re
 from app.models import Car
 
 
-PLATE_NUMBER_TEMPLATE = r'^(?:\d{2}[A-Za-z]\d{3}[A-Za-z]{2}|\d{5}[A-Za-z]{3}|\d{2}[A-Za-z]\d{6})$'
+PLATE_NUMBER_TEMPLATE = r'^(?!00)(?:\d{2}[A-Za-z]\d{3}[A-Za-z]{2}|\d{5}[A-Za-z]{3}|\d{2}[A-Za-z]\d{6})$'
 
 
 def get_year_sales():
@@ -141,47 +141,83 @@ def get_pump_info():
     last_plate_recognition_qs = PlateRecognition.objects.filter(
         pump=OuterRef('pk'),
         recognized_at__gt=datetime.now()-timedelta(minutes=15),
-        number__regex=PLATE_NUMBER_TEMPLATE
+        number__regex=PLATE_NUMBER_TEMPLATE,
+        is_processed=False,
     ).order_by('-recognized_at')
 
+    last_fuel_sale = FuelSale.objects.filter(
+        pump=OuterRef('id'),
+        date__gt=datetime.now() - timedelta(minutes=5)
+    ).order_by('-date')
+
     pumps_qs = Pump.objects.all().annotate(
-        last_plate_number=Subquery(
-            last_plate_recognition_qs.values('number')[:1]),
+        last_plate_recognition_id=Subquery(
+            last_plate_recognition_qs.values('id')[:1]),
         last_plate_recognized_at=Subquery(
             last_plate_recognition_qs.values('recognized_at')[:1]),
-        use_bonus=Subquery(last_plate_recognition_qs.values('use_bonus')[:1])
-    ).values('id', 'number', 'organization__name', 'last_plate_number', 'last_plate_recognized_at', 'use_bonus').order_by('number')
+        last_plate_number=Subquery(
+            last_plate_recognition_qs.values('number')[:1]),
+        last_plate_use_bonus=Subquery(
+            last_plate_recognition_qs.values('use_bonus')[:1]),
+        sales_plate_recognition_id=Subquery(
+            last_fuel_sale.values('plate_recognition_id')[:1]),
+        sales_plate_recognized_at=Subquery(
+            last_fuel_sale.values('plate_recognition__recognized_at')[:1]),
+        sales_plate_number=Subquery(
+            last_fuel_sale.values('plate_recognition__number')[:1]),
+        sales_plate_use_bonus=Subquery(
+            last_fuel_sale.values('plate_recognition__use_bonus')[:1]),
+        sales_date=Subquery(last_fuel_sale.values('date')[:1]),
+        price=Subquery(last_fuel_sale.values('price')[:1]),
+        quantity=Subquery(last_fuel_sale.values('quantity')[:1]),
+        discount=Subquery(last_fuel_sale.values('discount_amount')[:1]),
+        final_amount=Subquery(last_fuel_sale.values('final_amount')[:1]),
+        total_amount=Subquery(last_fuel_sale.values('total_amount')[:1]),
+    ).values(
+        'id',
+        'number',
+        'organization__name',
+        'last_plate_recognition_id',
+        'last_plate_recognized_at',
+        'last_plate_number',
+        'last_plate_use_bonus',
+        'sales_plate_recognition_id',
+        'sales_plate_recognized_at',
+        'sales_plate_number',
+        'sales_plate_use_bonus',
+        'sales_date',
+        'price',
+        'quantity',
+        'total_amount',
+        'discount',
+        'final_amount',
+    ).order_by('number')
 
     pump_info = []
     for pump in pumps_qs:
-        # For each pump, query the last fuel sale where sale date is >= plate recognition's recognized_at
-        fuel_sale = None
-        if pump['last_plate_recognized_at']:
-            fuel_sale = FuelSale.objects.filter(
-                pump_id=pump['id'],
-                date__gte=pump['last_plate_recognized_at']  
-            ).order_by('-date').first()
-        else:
-            fuel_sale = FuelSale.objects.filter(
-                pump_id=pump['id'],
-            ).order_by('-date').first()
+        prefix = 'sales_'
+        new_drive_in = False
+        if pump['last_plate_recognition_id'] and pump['sales_date'] < pump['last_plate_recognized_at']:
+            prefix = 'last_'
+            new_drive_in = True
+            
         # Get car info if exists
-        car = Car.objects.filter(plate_number=pump['last_plate_number']).first(
-        ) if pump['last_plate_number'] else None
+        car = Car.objects.filter(
+            plate_number=pump[f'{prefix}plate_number']).first()
 
         pump_info.append({
             'pumpNumber': pump['number'],
             'organization': pump['organization__name'],
-            'plateNumber': pump['last_plate_number'],
-            'plateRecognized_at': pump['last_plate_recognized_at'].strftime('%Y-%m-%d %H:%M:%S') if pump['last_plate_recognized_at'] else None,
+            'plateNumber': pump[f'{prefix}plate_number'],
+            'plateRecognized_at': pump[f'{prefix}plate_recognized_at'],
             'userBalance': car.loyalty_points if car else 0,
-            'useBonus': pump['use_bonus'] if pump['use_bonus'] else False,
-            'newClient': True if pump['last_plate_number'] and not car else False,
-            'quantity': float(fuel_sale.quantity) if fuel_sale and fuel_sale.quantity else 0,
-            'discount': float(fuel_sale.discount_amount) if fuel_sale and fuel_sale.discount_amount else 0,
-            'finalAmount': float(fuel_sale.final_amount) if fuel_sale and fuel_sale.final_amount else 0,
-            'totalAmount': float(fuel_sale.total_amount) if fuel_sale and fuel_sale.total_amount else 0,
-            'price': float(fuel_sale.price) if fuel_sale and fuel_sale.price else 0,
+            'useBonus': pump[f'{prefix}plate_use_bonus'] if pump[f'{prefix}plate_use_bonus'] else False,
+            'newClient': True if pump[f'{prefix}plate_number'] and car is None else False,
+            'quantity': float(pump['quantity']) if pump['quantity'] and not new_drive_in else 0,
+            'discount': float(pump['discount']) if pump['discount'] and not new_drive_in else 0,
+            'finalAmount': float(pump['final_amount']) if pump['final_amount'] and not new_drive_in else 0,
+            'totalAmount': float(pump['total_amount']) if pump['total_amount'] and not new_drive_in else 0,
+            'price': float(pump['price']) if pump['price'] and not new_drive_in else 0,
         })
 
     return pump_info

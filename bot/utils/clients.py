@@ -1,5 +1,6 @@
 from bot.models import Bot_user
 from bot.utils.bot_functions import bot
+from app.utils.queries import PLATE_NUMBER_TEMPLATE
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup 
 from asgiref.sync import async_to_sync
 from bot.services.language_service import get_word 
@@ -23,7 +24,6 @@ def inform_user_bonus(user: Bot_user, record_id):
 
 
 async def validate_plate_number(plate_number: str):
-    # Проверяем, есть ли в базе данных пользователь с таким номером
-    if re.match(r'^(?:\d{2}[A-Za-z]\d{3}[A-Za-z]{2}|\d{5}[A-Za-z]{3}|\d{2}[A-Za-z]\d{6})$', plate_number):
+    if re.match(PLATE_NUMBER_TEMPLATE, plate_number):
         return True
     return False

@@ -53,7 +53,7 @@ class PlateRecognitionView(APIView):
         # plate_number = recognize_plate(base64_image)
         plate_number = event['ANPR']['licensePlate']
         if pump and not re.match(PLATE_NUMBER_TEMPLATE, plate_number):
-            plate_number = read_plate(image_path).upper()
+            plate_number = read_plate(image_path)
 
         timestamp = datetime.strptime(
             event['dateTime'][:19], '%Y-%m-%dT%H:%M:%S')
