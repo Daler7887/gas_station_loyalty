@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import LoyaltyPointsTransaction, PlateRecognition
+from .models import LoyaltyPointsTransaction, PlateRecognition, FuelSale
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from .utils.queries import get_pump_info
@@ -21,6 +21,9 @@ def create_or_update_bot_user(sender, instance, created, **kwargs):
 
         car.save()
 
+
+@receiver(post_save, sender=FuelSale)
+def update_fuel_sale_info(sender, instance, created, **kwargs):
     channel_layer = get_channel_layer()
     pump_info = get_pump_info()
     async_to_sync(channel_layer.group_send)(
