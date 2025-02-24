@@ -209,7 +209,7 @@ def get_pump_info():
             'pumpNumber': pump['number'],
             'organization': pump['organization__name'],
             'plateNumber': pump[f'{prefix}plate_number'],
-            'plateRecognized_at': pump[f'{prefix}plate_recognized_at'],
+            'plateRecognized_at': pump[f'{prefix}plate_recognized_at'].strftime('%Y-%m-%d %H:%M:%S') if pump[f'{prefix}plate_recognized_at'] else None,
             'userBalance': car.loyalty_points if car else 0,
             'useBonus': pump[f'{prefix}plate_use_bonus'] if pump[f'{prefix}plate_use_bonus'] else False,
             'newClient': True if pump[f'{prefix}plate_number'] and car is None else False,
