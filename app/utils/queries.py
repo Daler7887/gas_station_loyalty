@@ -195,7 +195,7 @@ def get_pump_info():
 
     pump_info = []
     for pump in pumps_qs:
-        prefix = 'sales_'
+        prefix = 'sales_' if pump['sales_plate_recognition_id'] else 'last_'
         new_drive_in = pump['sales_plate_recognition_id'] is None
         if pump['last_plate_recognition_id'] and pump['sales_plate_recognition_id'] and pump['sales_date'] < pump['last_plate_recognized_at']:
             prefix = 'last_'
