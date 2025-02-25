@@ -8,7 +8,7 @@ import xmltodict
 import base64
 from bot.utils.clients import inform_user_bonus
 from bot.models import Bot_user
-from app.utils.queries import PLATE_NUMBER_TEMPLATE
+from app.utils import PLATE_NUMBER_TEMPLATE
 import re
 from datetime import datetime, timedelta
 import logging

@@ -1,4 +1,5 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
+from django.db.models import Sum
 from django.dispatch import receiver
 from .models import LoyaltyPointsTransaction, PlateRecognition, FuelSale
 from asgiref.sync import async_to_sync
@@ -7,19 +8,19 @@ from .utils.queries import get_pump_info
 
 
 @receiver(post_save, sender=LoyaltyPointsTransaction)
-def create_or_update_bot_user(sender, instance, created, **kwargs):
+def loyalty_points_transaction_saved(sender, instance, created, **kwargs):
     """
     Обрабатывает создание или обновление записи Bot_user при создании LoyaltyPointsTransaction.
     """
-    if created:
-        # Обновляем баланс пользователя
-        car = instance.car
-        if instance.transaction_type == 'accrual':
-            car.loyalty_points += instance.points
-        elif instance.transaction_type == 'redeem':
-            car.loyalty_points -= instance.points
+    update_car_loyalty_points(instance.car)
 
-        car.save()
+
+@receiver(post_delete, sender=LoyaltyPointsTransaction)
+def loyalty_points_transaction_deleted(sender, instance, **kwargs):
+    """
+    Обрабатывает удаление записи LoyaltyPointsTransaction.
+    """
+    update_car_loyalty_points(instance.car)
 
 
 @receiver(post_save, sender=FuelSale)
@@ -51,3 +52,13 @@ def update_pump_info(sender, instance, created, **kwargs):
             'pumps': pump_info
         }
     )
+
+
+def update_car_loyalty_points(car):
+    accrual_points = LoyaltyPointsTransaction.objects.filter(
+        car=car, transaction_type='accrual').aggregate(Sum('points'))['points__sum'] or 0
+    redeem_points = LoyaltyPointsTransaction.objects.filter(
+        car=car, transaction_type='redeem').aggregate(Sum('points'))['points__sum'] or 0
+    total_points = accrual_points - redeem_points
+    car.loyalty_points = total_points
+    car.save(update_fields=['loyalty_points'])

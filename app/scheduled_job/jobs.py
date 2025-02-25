@@ -7,7 +7,7 @@ from bot.utils import bot
 from app.utils.smb_utils import read_file
 from app.utils.hikvision import get_parking_plate_number
 from apscheduler.schedulers.background import BackgroundScheduler
-from app.utils.queries import PLATE_NUMBER_TEMPLATE as plate_templates
+from app.utils import PLATE_NUMBER_TEMPLATE as plate_templates
 import requests
 import logging
 import os
@@ -88,6 +88,9 @@ def process_fuel_sales_log():
                 if quantity == 0 and total_amount == 0:
                     continue
 
+                if FuelSale.objects.filter(date=timestamp, pump__number=pump_number, organization=org).exists():
+                    continue
+
                 pump, _ = Pump.objects.get_or_create(number=pump_number, organization=org, defaults={
                                                      "number": pump_number, "ip_address": "", "organization": org})
 
@@ -99,7 +102,9 @@ def process_fuel_sales_log():
 
                 # Если нет последнего, берём предыдущую продажу
                 if plate_recog is None:
-                    plate_recog = FuelSale.objects.filter(pump=pump, date__gte=timestamp-timedelta(minutes=4), date__lte=timestamp).order_by('-date').first().plate_recognition
+                    last_sale = FuelSale.objects.filter(pump=pump, date__gte=timestamp-timedelta(minutes=4), date__lte=timestamp).order_by('-date').first()
+                    if last_sale:
+                        plate_recog = last_sale.plate_recognition
 
                 plate_number = plate_recog.number if plate_recog else None
 

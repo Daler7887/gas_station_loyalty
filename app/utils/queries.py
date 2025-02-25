@@ -9,9 +9,7 @@ from channels.db import database_sync_to_async
 from datetime import datetime, timedelta, date
 import re
 from app.models import Car
-
-
-PLATE_NUMBER_TEMPLATE = r'^(?!00)(?:\d{2}[A-Za-z]\d{3}[A-Za-z]{2}|\d{5}[A-Za-z]{3}|\d{2}[A-Za-z]\d{6})$'
+from app.utils import PLATE_NUMBER_TEMPLATE
 
 
 def get_year_sales():
@@ -200,7 +198,7 @@ def get_pump_info():
         if pump['last_plate_recognition_id'] and pump['sales_plate_recognition_id'] and pump['sales_date'] < pump['last_plate_recognized_at']:
             prefix = 'last_'
             new_drive_in = True
-            
+
         # Get car info if exists
         car = Car.objects.filter(
             plate_number=pump[f'{prefix}plate_number']).first()

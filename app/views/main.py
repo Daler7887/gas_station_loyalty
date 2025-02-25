@@ -19,7 +19,7 @@ class DashboardData(APIView):
         # sales data
         year_sales = get_year_sales()
         sales_month_count = year_sales.count()
-        this_month_sales = year_sales.last().get('total', 0)
+        this_month_sales = year_sales.last().get('total', 0) if sales_month_count > 0 else 0
         sales_increase_percent = 0
 
         if sales_month_count > 1:
@@ -31,7 +31,7 @@ class DashboardData(APIView):
         # new customers data
         new_customers = get_new_customers()
         new_customers_count = new_customers.count()
-        this_month_new_customers = new_customers.last().get('total', 0)
+        this_month_new_customers = new_customers.last().get('total', 0) if new_customers_count > 0 else 0
         new_customers_percent = 0
         if new_customers_count > 1:
             last_month_new_customers = new_customers[new_customers_count - 2].get(
@@ -42,7 +42,7 @@ class DashboardData(APIView):
         # bonuses data
         bonuses_earned = get_bonuses_earned()
         bonuses_earned_count = bonuses_earned.count()
-        this_month_bonuses_earned = bonuses_earned.last().get('total', 0)
+        this_month_bonuses_earned = bonuses_earned.last().get('total', 0) if bonuses_earned_count > 0 else 0
         bonuses_earned_percent = 0
         if bonuses_earned_count > 1:
             last_month_bonuses_earned = bonuses_earned[bonuses_earned_count - 2].get(
@@ -52,7 +52,7 @@ class DashboardData(APIView):
 
         bonuses_spent = get_bonuses_spent()
         bonuses_spent_count = bonuses_spent.count()
-        this_month_bonuses_spent = bonuses_spent.last().get('total', 0)
+        this_month_bonuses_spent = bonuses_spent.last().get('total', 0) if bonuses_spent_count > 0 else 0
         bonuses_spent_percent = 0
         if bonuses_spent_count > 1:
             last_month_bonuses_spent = bonuses_spent[bonuses_spent_count - 2].get(

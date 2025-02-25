@@ -2,6 +2,8 @@ from datetime import datetime, date, timedelta
 import requests
 import json
 
+PLATE_NUMBER_TEMPLATE = r'^(?!00)(?:\d{2}[A-Za-z]\d{3}[A-Za-z]{2}|\d{5}[A-Za-z]{3}|\d{2}[A-Za-z]\d{6})$'
+
 
 async def get_user_ip(request):
     x_forwarded_for = await request.META.get('HTTP_X_FORWARDED_FOR')

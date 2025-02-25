@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from datetime import timedelta
+from app.utils import PLATE_NUMBER_TEMPLATE
+import re
 
 
 class Constant(models.Model):
@@ -61,7 +63,7 @@ class PlateRecognition(models.Model):
 
 class FuelSale(models.Model):
     date = models.DateTimeField(null=True)
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization, on_delete=models.PROTECT)
     quantity = models.FloatField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -69,9 +71,9 @@ class FuelSale(models.Model):
         max_digits=10, decimal_places=2, default=0)
     final_amount = models.DecimalField(
         max_digits=10, decimal_places=2, default=0)
-    pump = models.ForeignKey(Pump, on_delete=models.CASCADE, null=True)
+    pump = models.ForeignKey(Pump, on_delete=models.PROTECT, null=True)
     plate_recognition = models.ForeignKey(
-        PlateRecognition, on_delete=models.CASCADE, null=True)
+        PlateRecognition, models.PROTECT, null=True)
     plate_number = models.CharField(max_length=20, null=True)
     new_client = models.BooleanField(default=False)
 
@@ -82,12 +84,14 @@ class FuelSale(models.Model):
             sale.save()
 
     def save(self, *args, **kwargs):
-        is_new = self.pk is None  # Проверяем, создается ли новая запись
+        # is_new = self.pk is None  # Проверяем, создается ли новая запись
+        if self.pk is not None:
+            LoyaltyPointsTransaction.objects.filter(fuel_sale=self).delete()
         super().save(*args, **kwargs)
 
-        if is_new and self.organization.loyalty_program and self.plate_number and self.plate_number != 'unknown':
-            use_bonus = PlateRecognition.objects.filter(
-                pump=self.pump, number=self.plate_number, use_bonus=True, recognized_at__gte=self.date - timedelta(minutes=60)).exists()
+        discount = 0
+        if self.organization.loyalty_program and self.plate_number and re.match(PLATE_NUMBER_TEMPLATE, self.plate_number):
+            use_bonus = self.plate_recognition.use_bonus
             if use_bonus:
                 # Списываем баллы
                 car = Car.objects.get(plate_number=self.plate_number)
@@ -104,13 +108,10 @@ class FuelSale(models.Model):
                     description=f"Потрачено балов для покупки топлива на сумму {self.total_amount}",
                     created_by=None
                 )
-                self.discount_amount = discount
-                self.final_amount = self.total_amount - discount
-                super().save(update_fields=['discount_amount', 'final_amount'])
             else:
                 # Рассчитываем баллы
                 points = self.total_amount * self.get_points_percent() / 100
-                car, created = Car.objects.get_or_create(
+                car, _ = Car.objects.get_or_create(
                     plate_number=self.plate_number, defaults={'loyalty_points': 0})
 
                 if points > 0:
@@ -124,6 +125,10 @@ class FuelSale(models.Model):
                         description=f"Начисление за покупку топлива на сумму {self.total_amount}",
                         created_by=None
                     )
+
+        self.discount_amount = discount
+        self.final_amount = self.total_amount - discount
+        super().save(update_fields=['discount_amount', 'final_amount'])
 
     class Meta:
         ordering = ['-date']

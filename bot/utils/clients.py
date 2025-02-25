@@ -1,6 +1,6 @@
 from bot.models import Bot_user
 from bot.utils.bot_functions import bot
-from app.utils.queries import PLATE_NUMBER_TEMPLATE
+from app.utils import PLATE_NUMBER_TEMPLATE
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup 
 from asgiref.sync import async_to_sync
 from bot.services.language_service import get_word 
