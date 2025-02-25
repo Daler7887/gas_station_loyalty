@@ -105,7 +105,7 @@ class LoyaltyPointsTransactionAdmin(admin.ModelAdmin):
 class CarAdmin(admin.ModelAdmin):
     list_display = ('plate_number', 'loyalty_points')
     search_fields = ('plate_number', )
-    list_filter = (InvalidPlateFilter,)
+    list_filter = (InvalidPlateFilter, 'plate_number')
     actions = [delete_invalid_plate_numbers]
 
 
