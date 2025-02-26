@@ -73,8 +73,9 @@ class PlateRecognitionView(APIView):
 
         try:
             users = Bot_user.objects.filter(car__plate_number=plate_number)
-            for user in users:
-                inform_user_bonus(user)
+            if re.match(PLATE_NUMBER_TEMPLATE, plate_number):
+                for user in users:
+                    inform_user_bonus(user, new_record.id)
         except Exception as e:
             logger.error(
                 f"Ошибка при отправке уведомления: {e} \n Plate number: {plate_number}")

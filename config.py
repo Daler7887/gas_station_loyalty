@@ -9,6 +9,7 @@ ALLOWED_HOSTS = [host.strip()
                  for host in os.environ.get("ALLOWED_HOSTS", "").split(",")]
 CSRF_TRUSTED_ORIGINS = [url.strip() for url in os.environ.get(
     "CSRF_TRUSTED_ORIGINS", "").split(",")]
+PORT = int(os.environ.get("PORT", 8000))
 
 # Postgres db informations
 DB_HOST = os.environ.get("DB_HOST")

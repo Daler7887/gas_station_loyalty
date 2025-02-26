@@ -158,6 +158,37 @@ lang_dict = {
     "success": [
         "Muvaffaqiyatli",
         "Успешно"
-    ]
+    ],
+    "sale success": [
+        "⛽️ Yonilg‘i quyish yakunlandi!\n\
+Siz {} m³ yonilg‘i quyib oldingiz.\n\n\
+💵 To‘lov summasi: <b>{}</b>\n\
+🎉 Sizga {} bonus ball qo‘shildi!\n\n\
+💳 Yangi bonus balansi: {} ball.\n\n\
+Bizni tanlaganingiz uchun rahmat! 🚗💨",
+        "⛽️ Заправка завершена!\n\
+Вы заправили {} m³.\n\n\
+💵 Сумма к оплате: <b>{}</b>\n\
+🎉 Вам начислены {} бонусных баллов!\n\n\
+💳 Ваш новый бонусный баланс: {} баллов.\n\n\
+Спасибо, что заправляетесь у нас! 🚗💨"
+    ],
+    "sale success discount": [
+        "⛽️ Yonilg‘i quyish yakunlandi!\n\
+Siz {} m³ yonilg‘i quyib oldingiz.\n\n\
+💵 To‘lov summasi: <s>{}</s> ➡ <b>{}</b>\n\
+🎁 Bonus hisobidan chegirma: {}\n\n\
+💳 Yangi bonus balansi: {} ball.\n\n\
+Bizni tanlaganingiz uchun rahmat! 🚗💨",
+        "⛽️ Заправка завершена!\n\
+Вы заправили {} m³ литров.\n\n\
+💵 Сумма к оплате: <s>{}</s> ➡ <b>{}</b>\n\
+🎁 Использовано {} бонусных баллов\n\n\
+💳 Ваш новый бонусный баланс: {} баллов.\n\n\
+Спасибо, что заправляетесь у нас! 🚗💨"
+    ],
+    "balance changed": [
+        "Sizning bonus balansingiz o'zgardi.\nHozirgi balans: <b>{}</b> so'm.",
+        "Ваш бонусный баланс изменился.\nТекущий баланс: <b>{}</b> сум."
+    ],
 }
-

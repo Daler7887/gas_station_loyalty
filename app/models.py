@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-from datetime import timedelta
 from app.utils import PLATE_NUMBER_TEMPLATE
+from bot.utils.clients import inform_user_sale, inform_changed_balance
 import re
 
 
@@ -84,17 +84,19 @@ class FuelSale(models.Model):
             sale.save()
 
     def save(self, *args, **kwargs):
-        # is_new = self.pk is None  # Проверяем, создается ли новая запись
-        if self.pk is not None:
+        is_new = self.pk is None  # Проверяем, создается ли новая запись
+        if not is_new:
             LoyaltyPointsTransaction.objects.filter(fuel_sale=self).delete()
         super().save(*args, **kwargs)
 
         discount = 0
+        points = 0
         if self.organization.loyalty_program and self.plate_number and re.match(PLATE_NUMBER_TEMPLATE, self.plate_number):
             use_bonus = self.plate_recognition.use_bonus
             if use_bonus:
                 # Списываем баллы
-                car = Car.objects.get(plate_number=self.plate_number)
+                car, _ = Car.objects.get_or_create(
+                    plate_number=self.plate_number, defaults={'loyalty_points': 0})
                 if car.loyalty_points <= 0:
                     return
                 discount = min(car.loyalty_points, self.total_amount)
@@ -130,8 +132,12 @@ class FuelSale(models.Model):
         self.final_amount = self.total_amount - discount
         super().save(update_fields=['discount_amount', 'final_amount'])
 
-    class Meta:
-        ordering = ['-date']
+        # Уведомление пользователю о сумме продажи
+        if is_new and self.plate_number and re.match(PLATE_NUMBER_TEMPLATE, self.plate_number) and self.organization.loyalty_program:
+            inform_user_sale(car, self.quantity, self.final_amount, self.total_amount, discount, points)
+
+        class Meta:
+            ordering = ['-date']
 
     def get_points_percent(self):
         # Получаем процент начисления баллов

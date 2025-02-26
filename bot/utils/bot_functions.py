@@ -21,8 +21,11 @@ from telegram.ext import (
 )
 from uuid import uuid4
 from config import BOT_API_TOKEN
+import requests
+import json
 
 bot = Bot(BOT_API_TOKEN)
+TELEGRAM_API_URL = f"https://api.telegram.org/bot{BOT_API_TOKEN}/sendMessage"
 
 
 async def update_message_reply_text(update: Update, text, reply_markup=None, disable_web_page_preview=True):
@@ -200,3 +203,24 @@ async def send_media_group(bot: Bot, chat_id, photos):
         await bot.send_media_group(chat_id=chat_id, media=all)
     except:
         w = 0
+
+
+def bot_send_message_sync(chat_id: str, text: str, timeout: int = 5, reply_markup=None):
+    """Синхронная отправка сообщения в Telegram с ограничением времени ожидания."""
+
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "HTML"
+    }
+    if reply_markup:
+        payload["reply_markup"] = json.dumps(reply_markup)
+        
+    try:
+        response = requests.post(TELEGRAM_API_URL, json=payload, timeout=timeout)
+        response.raise_for_status()  # Если код ответа не 200-299, вызовет исключение
+        return response.json()  # Возвращаем ответ Telegram
+    except requests.Timeout:
+        print("Ошибка: время ожидания ответа от Telegram истекло.")
+    except requests.RequestException as e:
+        print(f"Ошибка отправки в Telegram: {e}")

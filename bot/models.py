@@ -4,11 +4,6 @@ from django.core.exceptions import ValidationError
 import re
 
 
-def plate_number_validator(plate_number):
-    if not re.match(r'[A-Z]{2}\d{3}[A-Z]{2}', plate_number):
-        raise ValidationError('Неверный формат номера автомобиля')
-
-
 class Bot_user(models.Model):
     user_id = models.BigIntegerField(null=True)
 

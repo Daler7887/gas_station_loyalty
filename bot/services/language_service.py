@@ -13,3 +13,13 @@ async def get_word(text, update=None, chat_id=None):
         result = lang_dict[text][1]
 
     return result if result else text
+
+
+def get_word_sync(texts, chat_id=None):
+    user = Bot_user.objects.filter(user_id=chat_id).first()
+    if user and user.lang == "uz":
+        result = lang_dict[texts][0]
+    else:
+        result = lang_dict[texts][1]
+
+    return result if result else texts

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from bot.models import Bot_user
-from app.models import Car, FuelSale, PlateRecognition
+from app.models import Car, FuelSale, PlateRecognition, LoyaltyPointsTransaction
 
 
 class CameraDataSerializer(serializers.ModelSerializer):
@@ -38,8 +38,18 @@ class BotUserSerializer(serializers.ModelSerializer):
 
 class FuelSaleSerializer(serializers.ModelSerializer):
     organization = serializers.StringRelatedField()
+    points = serializers.SerializerMethodField()
 
     class Meta:
         model = FuelSale
         fields = ['id', 'date', 'organization', 'quantity',
-                  'price', 'total_amount', 'plate_number']
+                  'price', 'total_amount', 'discount_amount', 'final_amount', 'plate_number', 'points']
+
+    def get_points(self, obj):
+        transaction = LoyaltyPointsTransaction.objects.filter(fuel_sale=obj).first()
+        if transaction:
+            if transaction.transaction_type == 'accrual':
+                return transaction.points
+            elif transaction.transaction_type == 'redeem':
+                return -transaction.points
+        return 0

@@ -1,23 +1,27 @@
 import json
-from django.http import HttpResponse
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.views import View
 from bot.control.updater import application
 from telegram import Update
-import asyncio
-from asgiref.sync import sync_to_async
-from time import sleep
+import logging
 
-@csrf_exempt
-def bot_webhook(request):
-    data = json.loads(request.body.decode("utf-8"))
-    update = Update.de_json(data = data, bot=application.bot)
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(update_bot(update))
-    loop.close()
-    return HttpResponse('')
+logger = logging.getLogger(__name__)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class BotWebhookView(View):
+    async def post(self, request, *args, **kwargs):
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+            update = Update.de_json(data=data, bot=application.bot)
+            await update_bot(update)
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            logger.error(f"Error handling webhook: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)})
 
 async def update_bot(update):
-    # await asyncio.sleep(5)
-    async with application:
-        await application.process_update(update)
+    logger.info(f"Putting update into queue: {update}")
+    await application.update_queue.put(update)
