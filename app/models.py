@@ -134,7 +134,7 @@ class FuelSale(models.Model):
 
         # Уведомление пользователю о сумме продажи
         if is_new and self.plate_number and re.match(PLATE_NUMBER_TEMPLATE, self.plate_number) and self.organization.loyalty_program:
-            inform_user_sale(car, self.quantity, self.final_amount, self.total_amount, discount, points)
+            inform_user_sale(car, round(self.quantity), round(self.final_amount), round(self.total_amount), round(discount), round(points))
 
         class Meta:
             ordering = ['-date']
