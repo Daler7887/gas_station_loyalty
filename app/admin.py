@@ -76,6 +76,8 @@ class PumpAdmin(admin.ModelAdmin):
 @admin.register(Constant)
 class ConstantAdmin(admin.ModelAdmin):
     list_display = ['key', 'value']
+    list_editable = ['value']
+    list_display_links = None
 
 
 @admin.action(description='Delete all loyalty points')
