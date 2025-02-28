@@ -32,6 +32,19 @@ def loyalty_points_transaction_deleted(sender, instance, **kwargs):
     update_car_loyalty_points(instance.car)
 
 
+@receiver(post_save, sender=FuelSale)
+def update_fuel_sale_info(sender, instance, created, **kwargs):
+    channel_layer = get_channel_layer()
+    pump_info = get_pump_info()
+    async_to_sync(channel_layer.group_send)(
+        'pumps_group',
+        {
+            'type': 'pump_message',
+            'pumps': pump_info
+        }
+    )
+
+
 @receiver(post_save, sender=PlateRecognition)
 def update_pump_info(sender, instance, created, **kwargs):
     """
