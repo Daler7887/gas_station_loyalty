@@ -26,3 +26,8 @@ TG_GROUP_ID = os.environ.get("TG_GROUP_ID")
 # OpenAI
 OPENAI_API_TOKEN = os.environ.get("OPENAI_API_TOKEN")
 ALPR_TOKEN = os.environ.get("ALPR_TOKEN")
+
+# Redis
+REDIS_HOST = os.environ.get("REDIS_HOST")
+REDIS_PORT = os.environ.get("REDIS_PORT")
+REDIS_DB = os.environ.get("REDIS_DB")
