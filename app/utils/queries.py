@@ -138,7 +138,7 @@ def get_pump_info():
     # Get pumps with last plate recognition (subquery)
     last_plate_recognition_qs = PlateRecognition.objects.filter(
         pump=OuterRef('pk'),
-        recognized_at__gt=datetime.now()-timedelta(minutes=15),
+        recognized_at__gt=datetime.now()-timedelta(minutes=10),
         number__regex=PLATE_NUMBER_TEMPLATE,
         is_processed=False,
     ).order_by('-recognized_at')

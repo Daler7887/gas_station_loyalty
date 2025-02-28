@@ -62,7 +62,7 @@ async def bot_send_document(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     return message
 
 
-async def send_newsletter(bot: Bot, chat_id, text, photo=None, video=None, document=None, reply_markup=None, pin_message=False):
+async def send_newsletter(bot: Bot, chat_id, text, photo=None, video=None, document=None, reply_markup=None, pin_message=False, reply_to_message_id=None):
     try:
         if not (photo or video or document):
             # send text message
@@ -70,9 +70,10 @@ async def send_newsletter(bot: Bot, chat_id, text, photo=None, video=None, docum
                 chat_id=chat_id,
                 text=text,
                 reply_markup=reply_markup,
-                parse_mode=ParseMode.HTML
+                parse_mode=ParseMode.HTML,
+                reply_to_message_id=reply_to_message_id
             )
-
+        
         if photo:
             # send photo
             message = await bot.send_photo(
@@ -80,7 +81,8 @@ async def send_newsletter(bot: Bot, chat_id, text, photo=None, video=None, docum
                 photo,
                 caption=text,
                 reply_markup=reply_markup,
-                parse_mode=ParseMode.HTML,
+                parse_mode = ParseMode.HTML,
+                reply_to_message_id=reply_to_message_id
             )
 
         if video:
@@ -90,7 +92,8 @@ async def send_newsletter(bot: Bot, chat_id, text, photo=None, video=None, docum
                 video,
                 caption=text,
                 reply_markup=reply_markup,
-                parse_mode=ParseMode.HTML,
+                parse_mode = ParseMode.HTML,
+                reply_to_message_id=reply_to_message_id
             )
         if document:
             # send document
@@ -99,14 +102,15 @@ async def send_newsletter(bot: Bot, chat_id, text, photo=None, video=None, docum
                 document,
                 caption=text,
                 reply_markup=reply_markup,
-                parse_mode=ParseMode.HTML,
+                parse_mode = ParseMode.HTML,
+                reply_to_message_id=reply_to_message_id
             )
 
         if pin_message:
             await bot.pin_chat_message(chat_id=chat_id, message_id=message.message_id)
         return message
-    except:
-        return None
+    except Exception as e:
+        return e
 
 
 async def bot_delete_message(update: Update, context: ContextTypes.DEFAULT_TYPE, message_id=None):

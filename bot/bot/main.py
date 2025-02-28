@@ -175,8 +175,12 @@ async def handle_callback_query(update, context: CallbackContext):
     if data.startswith('bonus_'):
         record_id = data.split('_')[1]
         plate_recognition = await PlateRecognition.objects.aget(id=record_id)
-        plate_recognition.use_bonus = True
-        await plate_recognition.asave()
-        await query.edit_message_reply_markup(reply_markup=None)
-        await query.answer(await get_word('success', query))
-        await query.message.edit_text(query.message.text + "\n\n" + await get_word("use bonus", query) + " ✅")
+        if plate_recognition.is_processed:
+            await query.answer(await get_word('bonus not allowed', query))
+            await query.edit_message_reply_markup(reply_markup=None)
+        else:
+            plate_recognition.use_bonus = True
+            await plate_recognition.asave()
+            await query.answer(await get_word('success', query))
+            await query.message.edit_text(query.message.text + "\n\n" + await get_word("use bonus", query) + " ✅")
+        

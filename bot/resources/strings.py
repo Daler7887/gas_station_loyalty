@@ -191,4 +191,8 @@ Bizni tanlaganingiz uchun rahmat! 🚗💨",
         "Sizning bonus balansingiz o'zgardi.\nHozirgi balans: <b>{}</b> so'm.",
         "Ваш бонусный баланс изменился.\nТекущий баланс: <b>{}</b> сум."
     ],
+    "bonus not allowed": [
+        "Bonuslardan sotuvdan keyin foydalanish mumkin emas.",
+        "Бонусы недоступны после оформления продажи."
+    ],
 }

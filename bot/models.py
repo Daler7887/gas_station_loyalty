@@ -34,17 +34,19 @@ class Bot_user(models.Model):
 
 
 class Feedback(models.Model):
-    user_id = models.CharField(max_length=50)
+    user_id = models.ForeignKey(
+        Bot_user, on_delete=models.CASCADE, verbose_name='Пользователь')
     message_id = models.CharField(max_length=50)
     admin_message_id = models.CharField(max_length=50, default='')
     admin_chat_id = models.CharField(max_length=50, default='')
-    text = models.TextField()
-    # complaints or suggestions
-    category = models.CharField(max_length=20, default='')
-    timestamp = models.DateTimeField(auto_now_add=True)
+    text = models.TextField(null=True, blank=True, verbose_name='Сообщение')
+    photo = models.CharField(null=True, blank=True, max_length=255)
+    video = models.CharField(null=True, blank=True, max_length=255)
+    file = models.CharField(null=True, blank=True, max_length=255)
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name='Дата')
 
     def __str__(self):
-        return f'{self.category.capitalize()} from {self.user_id} at {self.timestamp}'
+        return f'Отзыв от {self.user_id.phone} Сообщение: {self.text}'
 
     class Meta:
         verbose_name = "Отзыв"

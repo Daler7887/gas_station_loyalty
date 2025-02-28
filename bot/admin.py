@@ -2,6 +2,8 @@ from django.contrib import admin
 from bot.models import *
 from django.utils.html import format_html
 from django.urls import reverse, path
+from asgiref.sync import async_to_sync
+from bot.utils.bot_functions import send_newsletter, bot
 
 
 class Bot_userAdmin(admin.ModelAdmin):
@@ -25,7 +27,6 @@ class Bot_userAdmin(admin.ModelAdmin):
 class MesageAdmin(admin.ModelAdmin):
     list_display = ['bot_users_name', 'small_text',
                     'open_photo', 'open_video', 'open_file', 'date']
-    list_display_links = None
     fieldsets = (
         ('', {
             'fields': ['bot_users', 'text', 'photo', 'video', 'file'],
@@ -33,6 +34,7 @@ class MesageAdmin(admin.ModelAdmin):
         }),
 
     )
+    actions = ['send_message']
 
     def bot_users_name(self, obj):
         result = ''
@@ -75,6 +77,26 @@ class MesageAdmin(admin.ModelAdmin):
         form.base_fields['bot_users'].widget.attrs['style'] = 'width: 20em;'
         return form
 
+    def send_message(self, request, queryset):
+        for message in queryset:
+
+            users = message.bot_users.all()
+            if not users:
+                users = Bot_user.objects.all()
+            for user in users:
+                try:
+                    photo = message.photo.path if message.photo else None
+                    video = message.video.path if message.video else None
+                    file = message.file.path if message.file else None
+                    async_to_sync(send_newsletter)(bot, user.user_id, message.text,
+                                                   photo=photo, video=video, document=file)
+                except Exception as e:
+                    self.message_user(
+                        request, f"Ошибка при отправке сообщения пользователю {user}: {e}", level="error")
+
+        self.message_user(request, "Сообщения успешно отправлены")
+    send_message.short_description = "Разослать сообщения"
+
 
 class SocialNetworkAdmin(admin.ModelAdmin):
     list_display = ('name', 'url')
@@ -85,8 +107,9 @@ class BranchAdmin(admin.ModelAdmin):
 
 
 class FeedbackAdmin(admin.ModelAdmin):
-    list_display = ('user_id', 'category', 'text', 'timestamp')
-    list_filter = ('category',)
+    list_display = ['user_id', 'timestamp', 'text', 'photo', 'video', 'file']
+    search_fields = ['user_id', 'text']
+    list_filter = ['timestamp']
 
 
 admin.site.register(Bot_user, Bot_userAdmin)

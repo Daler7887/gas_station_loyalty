@@ -118,18 +118,19 @@ suggestions_handler = ConversationHandler(
     entry_points=[MessageHandler(filters.Text(
         lang_dict['feedback']), suggestions.handle_suggestions)],
     states={
-        GET_SUGGESTION: [MessageHandler(
-            filters.TEXT & ~filters.COMMAND, suggestions.receive_suggestions)]
+        GET_SUGGESTION: [
+            MessageHandler(filters.ALL & ~filters.COMMAND, suggestions.receive_suggestions),
+        ]
     },
     fallbacks=[
         MessageHandler(filters.Text(lang_dict['back']), main.start),
+        CommandHandler("cancel", main.start),  
         CommandHandler("start", main.start)
     ],
     name="handle_suggestions"
 )
 
-feedback_handler_answer = MessageHandler(
-    filters.TEXT & filters.ChatType.GROUPS, suggestions.handle_feedback_response)
+feedback_handler_answer = MessageHandler(filters.ALL & filters.ChatType.GROUPS & ~filters.COMMAND, suggestions.handle_feedback_response)
 
 handlers = [
     CallbackQueryHandler(

@@ -93,12 +93,10 @@ class FuelSale(models.Model):
         points = 0
         if self.organization.loyalty_program and self.plate_number and re.match(PLATE_NUMBER_TEMPLATE, self.plate_number):
             use_bonus = self.plate_recognition.use_bonus
-            if use_bonus:
+            car, _ = Car.objects.get_or_create(
+                plate_number=self.plate_number, defaults={'loyalty_points': 0})
+            if use_bonus and car.loyalty_points > 0:
                 # Списываем баллы
-                car, _ = Car.objects.get_or_create(
-                    plate_number=self.plate_number, defaults={'loyalty_points': 0})
-                if car.loyalty_points <= 0:
-                    return
                 discount = min(car.loyalty_points, self.total_amount)
                 # Создаем транзакцию списания баллов
                 LoyaltyPointsTransaction.objects.create(
@@ -113,9 +111,6 @@ class FuelSale(models.Model):
             else:
                 # Рассчитываем баллы
                 points = self.total_amount * self.get_points_percent() / 100
-                car, _ = Car.objects.get_or_create(
-                    plate_number=self.plate_number, defaults={'loyalty_points': 0})
-
                 if points > 0:
                     # Создаем транзакцию начисления баллов
                     LoyaltyPointsTransaction.objects.create(
@@ -134,7 +129,7 @@ class FuelSale(models.Model):
 
         # Уведомление пользователю о сумме продажи
         if is_new and self.plate_number and re.match(PLATE_NUMBER_TEMPLATE, self.plate_number) and self.organization.loyalty_program:
-            inform_user_sale(car, round(self.quantity), round(self.final_amount), round(self.total_amount), round(discount), round(points))
+            inform_user_sale(car, self.quantity, round(self.final_amount), round(self.total_amount), round(discount), round(points))
 
         class Meta:
             ordering = ['-date']
