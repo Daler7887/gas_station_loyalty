@@ -64,7 +64,7 @@ class FuelSaleAdmin(admin.ModelAdmin):
     list_display = ('date', 'organization', 'pump', 'quantity',
                     'price', 'total_amount', 'discount_amount', 'final_amount', 'plate_number', 'plate_recognition', 'new_client')
     list_filter = ('organization', 'pump', 'date', InvalidPlateFilter)
-    search_fields = ('plate_number')
+    search_fields = ['plate_number']
     actions = [fill_plate_numbers]
 
 
@@ -95,7 +95,7 @@ class LoyaltyPointsTransactionAdmin(admin.ModelAdmin):
     list_display = ('organization', 'created_at', 'transaction_type', 'car', 'points',
                     'description', 'created_by')
     list_filter = ('transaction_type', 'created_by')
-    search_fields = ('car__plate_number', 'description')
+    search_fields = ['car__plate_number', 'description']
     readonly_fields = ('created_by',)
     actions = [delete_all_loyalty_points]
 
