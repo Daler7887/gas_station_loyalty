@@ -63,7 +63,7 @@ class OrganizationAdmin(admin.ModelAdmin):
 class FuelSaleAdmin(admin.ModelAdmin):
     list_display = ('date', 'organization', 'pump', 'quantity',
                     'price', 'total_amount', 'discount_amount', 'final_amount', 'plate_number', 'plate_recognition', 'new_client')
-    list_filter = ('organization', 'pump', 'date', InvalidPlateFilter)
+    list_filter = ('organization', 'pump', 'date', 'plate_number', InvalidPlateFilter)
     actions = [fill_plate_numbers]
 
 
@@ -93,7 +93,7 @@ def delete_invalid_plate_numbers(modeladmin, request, queryset):
 class LoyaltyPointsTransactionAdmin(admin.ModelAdmin):
     list_display = ('organization', 'created_at', 'transaction_type', 'car', 'points',
                     'description', 'created_by')
-    list_filter = ('transaction_type', 'car', 'created_by')
+    list_filter = ('transaction_type', 'car__plate_number', 'created_by')
     readonly_fields = ('created_by',)
     actions = [delete_all_loyalty_points]
 
