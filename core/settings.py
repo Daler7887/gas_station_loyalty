@@ -35,6 +35,8 @@ CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS
 
 INSTALLED_APPS = [
     'channels',
+    'import_export',
+    'rangefilter',
     'app.apps.app',
     'bot.apps.bot',
     'rest_framework',

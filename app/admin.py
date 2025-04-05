@@ -1,8 +1,9 @@
 from django.contrib import admin
 from app.models import *
 from app.utils import PLATE_NUMBER_TEMPLATE  # import the regex template
-import re
-
+from app.resources import FuelSaleResource
+from rangefilter.filters import DateTimeRangeFilter
+from import_export.admin import ImportExportModelAdmin
 
 # Register your models here.
 class InvalidPlateRecognitionFilter(admin.SimpleListFilter):
@@ -60,12 +61,15 @@ class OrganizationAdmin(admin.ModelAdmin):
 
 
 @admin.register(FuelSale)
-class FuelSaleAdmin(admin.ModelAdmin):
+class FuelSaleAdmin(ImportExportModelAdmin):
+    resource_class = FuelSaleResource
     list_display = ('date', 'organization', 'pump', 'quantity',
                     'price', 'total_amount', 'discount_amount', 'final_amount', 'plate_number', 'plate_recognition', 'new_client')
-    list_filter = ('organization', 'pump', 'date', InvalidPlateFilter)
+    list_filter = (('date', DateTimeRangeFilter), 'organization', 'pump', InvalidPlateFilter) 
     search_fields = ['plate_number']
     actions = [fill_plate_numbers]
+    def has_import_permission(self, request):
+        return False
 
 
 @admin.register(Pump)
