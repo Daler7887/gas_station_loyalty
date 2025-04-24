@@ -63,27 +63,27 @@ def get_new_customers():
 def get_customer_share():
     if connection.vendor == 'sqlite':
         date_filter = "datetime('now', '-60 days')"
-    elif connection.vendor == 'postgresql':
-        date_filter = "NOW() - interval '60 days'"
     else:
-        raise Exception("Unsupported database backend")
+        date_filter = "NOW() - interval '60 days'"
 
     query = f"""
-        WITH total_sales AS (
-          SELECT COUNT(*) AS total
-          FROM app_fuelsale
-          WHERE date >= {date_filter}
-        ),
-        one_time_sales AS (
+        WITH one_time_sales AS (
           SELECT COUNT(*) AS one_time
           FROM app_fuelsale f
           WHERE f.new_client = TRUE
             AND f.date >= {date_filter}
-            AND (
-              SELECT COUNT(*) FROM app_fuelsale
-              WHERE plate_number = f.plate_number
-                AND date >= {date_filter}
-            ) = 1
+            AND f.plate_number IN (
+              SELECT plate_number
+              FROM app_fuelsale
+              WHERE date >= {date_filter}
+              GROUP BY plate_number
+              HAVING COUNT(*) = 1
+            )
+        ),
+        total_sales AS (
+          SELECT COUNT(*) AS total
+          FROM app_fuelsale
+          WHERE date >= {date_filter}
         )
         SELECT
           o.one_time,
