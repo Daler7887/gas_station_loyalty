@@ -1,7 +1,6 @@
 from dateutil.relativedelta import relativedelta
 from django.db.models import (
-    Count, OuterRef, Subquery, Case, When, IntegerField,
-    Sum, BooleanField, ExpressionWrapper, Q, Value
+    Count, OuterRef, Subquery, Sum
 )
 from django.db.models.functions import TruncMonth, Coalesce
 from app.models import FuelSale, LoyaltyPointsTransaction
@@ -10,10 +9,9 @@ from django.db.models import OuterRef, Subquery
 from app.models import Pump, PlateRecognition
 from channels.db import database_sync_to_async
 from datetime import datetime, timedelta, date
-import re
 from app.models import Car
 from app.utils import PLATE_NUMBER_TEMPLATE
-
+from django.db import connection
 
 def get_year_sales():
     today = date.today()
@@ -65,39 +63,43 @@ def get_new_customers():
 
 
 def get_customer_share():
-    now = datetime.now()
-    two_months_ago = now - timedelta(days=60)
+    if connection.vendor == 'sqlite':
+        date_filter = "datetime('now', '-60 days')"
+    elif connection.vendor == 'postgresql':
+        date_filter = "NOW() - interval '60 days'"
+    else:
+        raise Exception("Unsupported database backend")
 
-    # Подзапрос: сколько раз номер встречается в окне 2 мес.
-    plate_counts = FuelSale.objects.filter(
-        date__gte=two_months_ago,
-        plate_number=OuterRef('plate_number')
-    ).values('plate_number').annotate(
-        total=Count('id')
-    ).values('total')
-
-    # Основной queryset с аннотациями
-    annotated = FuelSale.objects.filter(date__gte=two_months_ago).annotate(
-        total_visits=Subquery(plate_counts),
-        is_one_time=ExpressionWrapper(
-            Q(new_client=True) & Q(total_visits=1),
-            output_field=BooleanField()
-        )
-    )
-
-    # Финальная агрегация
-    result = annotated.aggregate(
-        one_time=Coalesce(
-            Sum(Case(When(is_one_time=True, then=1), default=0, output_field=IntegerField())),
-            Value(0)
+    query = f"""
+        WITH total_sales AS (
+          SELECT COUNT(*) AS total
+          FROM app_fuelsale
+          WHERE date >= {date_filter}
         ),
-        regular=Coalesce(
-            Sum(Case(When(is_one_time=False, then=1), default=0, output_field=IntegerField())),
-            Value(0)
+        one_time_sales AS (
+          SELECT COUNT(*) AS one_time
+          FROM app_fuelsale f
+          WHERE f.new_client = TRUE
+            AND f.date >= {date_filter}
+            AND (
+              SELECT COUNT(*) FROM app_fuelsale
+              WHERE plate_number = f.plate_number
+                AND date >= {date_filter}
+            ) = 1
         )
-    )
+        SELECT
+          o.one_time,
+          t.total - o.one_time AS regular
+        FROM total_sales t, one_time_sales o;
+    """
 
-    return result
+    with connection.cursor() as cursor:
+        cursor.execute(query)
+        row = cursor.fetchone() or (0, 0)
+        return {
+            'one_time': row[0] or 0,
+            'regular': row[1] or 0
+        }
 
 
 def get_bonuses_earned():
