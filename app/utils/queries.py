@@ -1,6 +1,9 @@
 from dateutil.relativedelta import relativedelta
-from django.db.models import Sum, Count
-from django.db.models.functions import TruncMonth
+from django.db.models import (
+    Count, OuterRef, Subquery, Case, When, IntegerField,
+    Sum, BooleanField, ExpressionWrapper, Q, Value
+)
+from django.db.models.functions import TruncMonth, Coalesce
 from app.models import FuelSale, LoyaltyPointsTransaction
 from django.contrib.admin.models import LogEntry
 from django.db.models import OuterRef, Subquery
@@ -59,6 +62,42 @@ def get_new_customers():
     )
 
     return queryset
+
+
+def get_customer_share():
+    now = datetime.now()
+    two_months_ago = now - timedelta(days=60)
+
+    # Подзапрос: сколько раз номер встречается в окне 2 мес.
+    plate_counts = FuelSale.objects.filter(
+        date__gte=two_months_ago,
+        plate_number=OuterRef('plate_number')
+    ).values('plate_number').annotate(
+        total=Count('id')
+    ).values('total')
+
+    # Основной queryset с аннотациями
+    annotated = FuelSale.objects.filter(date__gte=two_months_ago).annotate(
+        total_visits=Subquery(plate_counts),
+        is_one_time=ExpressionWrapper(
+            Q(new_client=True) & Q(total_visits=1),
+            output_field=BooleanField()
+        )
+    )
+
+    # Финальная агрегация
+    result = annotated.aggregate(
+        one_time=Coalesce(
+            Sum(Case(When(is_one_time=True, then=1), default=0, output_field=IntegerField())),
+            Value(0)
+        ),
+        regular=Coalesce(
+            Sum(Case(When(is_one_time=False, then=1), default=0, output_field=IntegerField())),
+            Value(0)
+        )
+    )
+
+    return result
 
 
 def get_bonuses_earned():
