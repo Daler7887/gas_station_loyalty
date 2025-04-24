@@ -4,7 +4,7 @@ from core.settings import BASE_DIR
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from app.utils.queries import get_year_sales, get_new_customers, get_bonuses_earned, get_bonuses_spent, get_logs
+from app.utils.queries import get_year_sales, get_new_customers, get_bonuses_earned, get_bonuses_spent, get_logs, get_customer_share
 from rest_framework.permissions import IsAuthenticated
 from app.serializers import UserSerializer
 
@@ -81,7 +81,8 @@ class DashboardData(APIView):
                 "percent": bonuses_spent_percent,
                 "series": bonuses_spent
             },
-            "logs": get_logs(request.user)
+            "logs": get_logs(request.user),
+            "customer_share": get_customer_share()
         }
 
         return Response(data, status=status.HTTP_200_OK)
