@@ -75,7 +75,10 @@ def get_customer_share():
             AND f.plate_number IN (
               SELECT plate_number
               FROM app_fuelsale
-              WHERE date >= {date_filter}
+              WHERE 
+                date >= {date_filter} 
+                AND plate_number IS NOT NULL
+                AND plate_number != ''
               GROUP BY plate_number
               HAVING COUNT(*) = 1
             )

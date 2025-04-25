@@ -74,7 +74,7 @@ class FuelSale(models.Model):
     pump = models.ForeignKey(Pump, on_delete=models.PROTECT, null=True)
     plate_recognition = models.ForeignKey(
         PlateRecognition, models.PROTECT, null=True)
-    plate_number = models.CharField(max_length=20, null=True)
+    plate_number = models.CharField(max_length=20, null=True, db_index=True)
     new_client = models.BooleanField(default=False)
 
     @staticmethod
@@ -132,7 +132,9 @@ class FuelSale(models.Model):
             inform_user_sale(car, self.quantity, round(self.final_amount), round(self.total_amount), round(discount), round(points))
 
         class Meta:
-            ordering = ['-date']
+            indexes = [
+                models.Index(fields=['plate_number', 'date']),
+            ]
 
     def get_points_percent(self):
         # Получаем процент начисления баллов
