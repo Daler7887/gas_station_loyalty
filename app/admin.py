@@ -63,11 +63,30 @@ class OrganizationAdmin(admin.ModelAdmin):
 @admin.register(FuelSale)
 class FuelSaleAdmin(ImportExportModelAdmin):
     resource_class = FuelSaleResource
-    list_display = ('date', 'organization', 'pump', 'quantity',
-                    'price', 'total_amount', 'discount_amount', 'final_amount', 'plate_number', 'plate_recognition', 'new_client')
-    list_filter = (('date', DateTimeRangeFilter), 'organization', 'pump', InvalidPlateFilter) 
+
+    list_display = (
+        'date', 'organization', 'pump', 'quantity',
+        'price', 'total_amount', 'discount_amount',
+        'final_amount', 'plate_number', 'plate_recognition',
+        'new_client'
+    )
+    list_filter = (
+        ('date', DateTimeRangeFilter),
+        'organization',
+        'pump',
+        InvalidPlateFilter,
+    )
     search_fields = ['plate_number']
     actions = [fill_plate_numbers]
+
+    # --------------------------------------------
+    # Вот эти три строчки — ключ к быстрой форме:
+    raw_id_fields = ('organization', 'pump', 'plate_recognition')
+    list_select_related = ('organization', 'pump', 'plate_recognition')
+    # либо, если вы на Django>=2.0 и настроили search_fields в админах пунктов:
+    # autocomplete_fields = ('organization', 'pump', 'plate_recognition')
+    # --------------------------------------------
+
     def has_import_permission(self, request):
         return False
 

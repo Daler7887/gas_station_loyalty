@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'bot.apps.bot',
     'rest_framework',
     'rest_framework_xml',
-    'jazzmin',
+    # 'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
