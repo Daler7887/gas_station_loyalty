@@ -77,8 +77,6 @@ def get_customer_share():
               FROM app_fuelsale
               WHERE 
                 date >= {date_filter} 
-                AND plate_number IS NOT NULL
-                AND plate_number != ''
               GROUP BY plate_number
               HAVING COUNT(*) = 1
             )
@@ -87,6 +85,8 @@ def get_customer_share():
           SELECT COUNT(*) AS total
           FROM app_fuelsale
           WHERE date >= {date_filter}
+            AND plate_number IS NOT NULL
+            AND plate_number != ''
         )
         SELECT
           o.one_time,
