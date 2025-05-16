@@ -31,8 +31,16 @@ ALLOWED_HOSTS = ALLOWED_HOSTS
 
 CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED_ORIGINS
 
-# Application definition
+USE_I18N = True
 
+LANGUAGE_CODE = 'en'
+
+LANGUAGES = [
+    ('en', 'English'),
+    ('ru', 'Русский')
+]
+
+# Application definition
 INSTALLED_APPS = [
     'channels',
     'import_export',
@@ -54,11 +62,12 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware'
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'app.middlewares.ContentTypeParserMiddleware'
 ]
 
