@@ -100,7 +100,7 @@ class FuelSale(models.Model):
         super().save(*args, **kwargs)
 
         car, _ = Car.objects.get_or_create(
-                plate_number=self.plate_number, defaults={'loyalty_points': 0})
+                plate_number=self.plate_number, defaults={'loyalty_points': 0, 'is_blacklisted': False})
         car.refresh_from_db() 
 
         if car.is_blacklisted:
