@@ -122,6 +122,9 @@ class LoyaltyPointsTransactionAdmin(admin.ModelAdmin):
     readonly_fields = ('created_by',)
     actions = [delete_all_loyalty_points]
 
+    raw_id_fields = ('fuel_sale', 'car')
+    list_select_related = ('fuel_sale', 'car')
+
     def save_model(self, request, obj, form, change):
         if not obj.pk:
             obj.created_by = request.user
