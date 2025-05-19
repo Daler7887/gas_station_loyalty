@@ -71,8 +71,10 @@ class PlateRecognitionView(APIView):
         )
         new_record.save()
 
+        # Проверяем, есть ли машина в черном списке
+
         try:
-            users = Bot_user.objects.filter(car__plate_number=plate_number)
+            users = Bot_user.objects.filter(car__plate_number=plate_number, car__is_blacklisted=False)
             if re.match(PLATE_NUMBER_TEMPLATE, plate_number):
                 for user in users:
                     inform_user_bonus(user, new_record.id)

@@ -30,8 +30,8 @@ class InvalidPlateFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return (
-            ('valid', 'Valid'),
-            ('invalid', 'Invalid'),
+            ('valid', 'Действителен'),
+            ('invalid', 'Недействителен'),
         )
 
     def queryset(self, request, queryset):
@@ -132,7 +132,7 @@ class LoyaltyPointsTransactionAdmin(admin.ModelAdmin):
 class CarAdmin(admin.ModelAdmin):
     list_display = ('plate_number', 'loyalty_points')
     search_fields = ('plate_number', )
-    list_filter = (InvalidPlateFilter, 'plate_number')
+    list_filter = (InvalidPlateFilter, 'plate_number', 'is_blacklisted')
     actions = [delete_invalid_plate_numbers]
 
 

@@ -96,14 +96,20 @@ class FuelSale(models.Model):
         is_new = self.pk is None  # Проверяем, создается ли новая запись
         if not is_new:
             LoyaltyPointsTransaction.objects.filter(fuel_sale=self).delete()
+        self.final_amount = self.total_amount
         super().save(*args, **kwargs)
 
+        car, _ = Car.objects.get_or_create(
+                plate_number=self.plate_number, defaults={'loyalty_points': 0})
+
+        if car.is_blacklisted:
+            # Если автомобиль в черном списке, не начисляем баллы
+            return
+        
         discount = 0
         points = 0
         if self.organization.loyalty_program and self.plate_number and re.match(PLATE_NUMBER_TEMPLATE, self.plate_number):
             use_bonus = self.plate_recognition.use_bonus
-            car, _ = Car.objects.get_or_create(
-                plate_number=self.plate_number, defaults={'loyalty_points': 0})
             if use_bonus and car.loyalty_points > 0:
                 # Списываем баллы
                 discount = min(car.loyalty_points, self.total_amount)
@@ -202,6 +208,8 @@ class LoyaltyPointsTransaction(models.Model):
 class Car(models.Model):
     plate_number = models.CharField(
         max_length=10, unique=True, verbose_name="Номер автомобиля")
+    is_blacklisted = models.BooleanField(
+        default=False, verbose_name="В черном списке")
     loyalty_points = models.IntegerField(
         default=0, verbose_name="Баланс")
     created_at = models.DateTimeField(
