@@ -151,7 +151,7 @@ async def set_plate_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await settings_menu(update, context)
         return ConversationHandler.END
     user_id = update.message.chat.id
-    plate_number = update.message.text
+    plate_number = update.message.text.upper()
     if not await validate_plate_number(plate_number):
         await update.message.reply_text('Неверный формат номера автомобиля')
         return CHANGE_PLATE_NUMBER
