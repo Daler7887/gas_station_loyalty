@@ -73,8 +73,11 @@ class PlateRecognitionView(APIView):
 
         # Проверяем, есть ли машина в черном списке
 
-        # Check if the current time is within the organization's redeem time range
         organization = pump.organization
+        if not organization.loyalty_program:
+            return Response(status=status.HTTP_200_OK)
+
+        # Check if the current time is within the organization's redeem time range
         if organization.redeem_start_time and organization.redeem_end_time:
             now = datetime.now().time()
             if not (organization.redeem_start_time <= now <= organization.redeem_end_time):
