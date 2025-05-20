@@ -80,7 +80,14 @@ class PlateRecognitionView(APIView):
         # Check if the current time is within the organization's redeem time range
         if organization.redeem_start_time and organization.redeem_end_time:
             now = datetime.now().time()
-            if not (organization.redeem_start_time <= now <= organization.redeem_end_time):
+            start = organization.redeem_start_time
+            end = organization.redeem_end_time
+            if start < end:
+                if not (start <= now <= end):
+                    return Response(status=status.HTTP_200_OK)
+            else:  # Time range crosses midnight
+                if not (now >= start or now <= end):
+                    return Response(status=status.HTTP_200_OK)
                 return Response(status=status.HTTP_200_OK)
 
         # Send notification to the user
