@@ -29,3 +29,7 @@ ALPR_TOKEN = os.environ.get("ALPR_TOKEN")
 
 # Redis
 REDIS_HOST = os.environ.get("REDIS_HOST")
+
+# Report bot
+REPORT_BOT_TOKEN= os.environ.get("REPORT_BOT_TOKEN")
+REPORT_CHAT_ID= os.environ.get("REPORT_CHAT_ID")

@@ -8,6 +8,7 @@ from app.utils.smb_utils import read_file
 from app.utils.hikvision import get_parking_plate_number
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.utils import PLATE_NUMBER_TEMPLATE as plate_templates
+from balance_report import send_balance_report
 import requests
 import logging
 import os
@@ -190,4 +191,5 @@ def start_scheduler():
     # Запускаем каждые 5 секунд
     scheduler.add_job(process_fuel_sales_log, 'interval', seconds=5)
     scheduler.add_job(delete_old_files, 'cron', day=1, hour=0, minute=0)
+    scheduler.add_job(send_balance_report, 'cron', hour=9, minute=0)
     scheduler.start()
