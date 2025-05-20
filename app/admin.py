@@ -117,7 +117,7 @@ def delete_invalid_plate_numbers(modeladmin, request, queryset):
 class LoyaltyPointsTransactionAdmin(ImportExportModelAdmin):
     list_display = ('organization', 'created_at', 'transaction_type', 'car', 'points',
                     'description', 'created_by')
-    list_filter = ('transaction_type', 'created_by')
+    list_filter = (('created_at', DateTimeRangeFilter),'transaction_type', 'created_by')
     search_fields = ['car__plate_number', 'description']
     readonly_fields = ('created_by',)
     actions = [delete_all_loyalty_points]
