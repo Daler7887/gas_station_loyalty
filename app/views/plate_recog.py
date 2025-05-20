@@ -73,6 +73,14 @@ class PlateRecognitionView(APIView):
 
         # Проверяем, есть ли машина в черном списке
 
+        # Check if the current time is within the organization's redeem time range
+        organization = pump.organization
+        if organization.redeem_start_time and organization.redeem_end_time:
+            now = datetime.now().time()
+            if not (organization.redeem_start_time <= now <= organization.redeem_end_time):
+                return Response(status=status.HTTP_200_OK)
+
+        # Send notification to the user
         try:
             users = Bot_user.objects.filter(car__plate_number=plate_number, car__is_blacklisted=False)
             if re.match(PLATE_NUMBER_TEMPLATE, plate_number):

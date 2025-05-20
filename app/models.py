@@ -23,6 +23,10 @@ class Organization(models.Model):
         null=True, blank=True, verbose_name="Последняя обработка")
     loyalty_program = models.BooleanField(
         default=False, verbose_name="Программа лояльности")
+    redeem_start_time = models.TimeField(
+        null=True, blank=True, verbose_name="Начало периода списания баллов")
+    redeem_end_time = models.TimeField(
+        null=True, blank=True, verbose_name="Конец периода списания баллов")
 
     class Meta:
         verbose_name = 'Организация'
