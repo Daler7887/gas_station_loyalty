@@ -88,7 +88,7 @@ def process_fuel_sales_log():
             with transaction.atomic():
                 FuelSale.objects.bulk_create(new_logs)
                 org.last_processed_timestamp = new_logs[-1].datetime
-                org.save()
+                org.save(update_fields=["last_processed_timestamp"])
 
         # if last_date < current_date - timedelta(days=2):
         #     org.last_processed_timestamp = last_date + timedelta(days=1)
