@@ -114,7 +114,7 @@ def delete_invalid_plate_numbers(modeladmin, request, queryset):
     queryset.exclude(plate_number__regex=PLATE_NUMBER_TEMPLATE).delete()
 
 @admin.register(LoyaltyPointsTransaction)
-class LoyaltyPointsTransactionAdmin(admin.ModelAdmin):
+class LoyaltyPointsTransactionAdmin(ImportExportModelAdmin):
     list_display = ('organization', 'created_at', 'transaction_type', 'car', 'points',
                     'description', 'created_by')
     list_filter = ('transaction_type', 'created_by')
@@ -130,6 +130,8 @@ class LoyaltyPointsTransactionAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
 
+    def has_import_permission(self, request):
+        return False
 
 @admin.register(Car)
 class CarAdmin(admin.ModelAdmin):
