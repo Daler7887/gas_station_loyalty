@@ -9,6 +9,10 @@ import os
 from config import REPORT_BOT_TOKEN, REPORT_CHAT_ID
 
 
+def format_number(x):
+    return f"{x:,}".replace(",", " ") if isinstance(x, (int, float)) else x
+
+
 def generate_balance_report(report_date: datetime, output_path="bonus_report.jpg"):
     # Установка периодов
     start_day = datetime.combine(report_date.date(), time.min)
@@ -47,10 +51,12 @@ def generate_balance_report(report_date: datetime, output_path="bonus_report.jpg
     columns = ["Период", "Остаток на начало", "Начислено", "Списано", "Остаток на конец"]
     df = pd.DataFrame(data, columns=columns)
 
+    formatted_df = df.applymap(format_number)
+
     # Генерация изображения
     fig, ax = plt.subplots(figsize=(10, 3))
     ax.axis('off')
-    table = ax.table(cellText=df.values, colLabels=columns, cellLoc='center', loc='center')
+    table = ax.table(cellText=formatted_df.values, colLabels=columns, cellLoc='center', loc='center')
     table.auto_set_font_size(False)
     table.set_fontsize(10)
     table.scale(1, 2)
