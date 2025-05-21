@@ -186,10 +186,11 @@ def parse_log_line(line):
     return pump_id, price, quantity, total_amount
 
 
-def start_scheduler():
-    scheduler = BackgroundScheduler()
-    # Запускаем каждые 5 секунд
-    scheduler.add_job(process_fuel_sales_log, 'interval', seconds=5)
-    scheduler.add_job(delete_old_files, 'cron', day=1, hour=0, minute=0)
-    scheduler.add_job(send_balance_report, 'cron', hour=0, minute=0)
-    scheduler.start()
+
+# def start_scheduler():
+#     scheduler = BackgroundScheduler()
+#     # Запускаем каждые 5 секунд
+#     scheduler.add_job(process_fuel_sales_log, 'interval', seconds=5)
+#     scheduler.add_job(delete_old_files, 'cron', day=1, hour=0, minute=0)
+#     scheduler.add_job(send_balance_report, 'cron', hour=0, minute=0)
+#     scheduler.start()

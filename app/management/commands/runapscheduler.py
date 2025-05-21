@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from apscheduler.schedulers.background import BackgroundScheduler
-from app.scheduled_job.jobs import process_fuel_sales_log
+from app.scheduled_job.jobs import process_fuel_sales_log, delete_old_files, send_balance_report
 
 class Command(BaseCommand):
     help = 'Run APScheduler'
@@ -8,6 +8,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         scheduler = BackgroundScheduler()
         scheduler.add_job(process_fuel_sales_log, 'interval', seconds=5)
+        scheduler.add_job(delete_old_files, 'cron', day=1, hour=0, minute=0)
+        scheduler.add_job(send_balance_report, 'cron', hour=0, minute=0)
         scheduler.start()
 
         self.stdout.write(self.style.SUCCESS('Scheduler started!'))
