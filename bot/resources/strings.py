@@ -179,14 +179,14 @@ Siz {} m³ yonilg‘i quyib oldingiz.\n\n\
 💵 To‘lov summasi: <s>{}</s> ➡ <b>{}</b>\n\
 🎁 Bonus hisobidan chegirma: {}\n\n\
 💳 Yangi bonus balansi: {} ball.\n\n\
-Siz yonilg‘i uchun ballar orqali to‘lov qildingiz. Agar kassa xodimi sizdan yana pul talab qilsa, iltimos, qo‘llab-quvvatlash xizmatiga qo‘ng‘iroq qiling: +998 97 929 02 09\n\n\
+Siz yonilg‘i uchun ballar orqali to‘lov qildingiz. Agar kassa xodimi sizdan to‘liq to‘lovni talab qilsa, iltimos, qo‘llab-quvvatlash xizmatiga qo‘ng‘iroq qiling: +998 97 929 02 09\n\n\
 Bizni tanlaganingiz uchun rahmat! 🚗💨",
         "⛽️ Заправка завершена!\n\
 Вы заправили {} m³ литров.\n\n\
 💵 Сумма к оплате: <s>{}</s> ➡ <b>{}</b>\n\
 🎁 Использовано {} бонусных баллов\n\n\
 💳 Ваш новый бонусный баланс: {} баллов.\n\n\
-Вы оплатили заправку баллами, если кассир у вас требует денег позвоните в службу поддержки: +998 97 929 02 09\n\n\
+Вы оплатили заправку баллами, если кассир у вас требует с вас полную сумму, позвоните в службу поддержки: +998 97 929 02 09\n\n\
 Спасибо, что заправляетесь у нас! 🚗💨"
     ],
     "balance changed": [
