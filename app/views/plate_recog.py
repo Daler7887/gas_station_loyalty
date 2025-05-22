@@ -88,7 +88,6 @@ class PlateRecognitionView(APIView):
             else:  # Time range crosses midnight
                 if not (now >= start or now <= end):
                     return Response(status=status.HTTP_200_OK)
-                return Response(status=status.HTTP_200_OK)
 
         # Send notification to the user
         try:
