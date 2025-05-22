@@ -59,7 +59,7 @@ class PlateRecognition(models.Model):
     pump = models.ForeignKey(Pump, on_delete=models.CASCADE, null=True, verbose_name='Колонка')
     number = models.CharField(max_length=20, verbose_name="Номер")
     recognized_at = models.DateTimeField(verbose_name='Время заезда')
-    exit_time = models.DateTimeField(null=True, verbose_name='Время выезда')
+    exit_time = models.DateTimeField(null=True, blank=True ,verbose_name='Время выезда')
     image1 = models.ImageField(upload_to='car_images/', null=True, verbose_name="Изображение 1")
     image2 = models.ImageField(upload_to='car_images/', null=True, verbose_name="Изображение 2")
     is_processed = models.BooleanField(default=False, verbose_name="Обработано")
