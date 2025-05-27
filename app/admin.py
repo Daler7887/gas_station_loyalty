@@ -113,6 +113,11 @@ def delete_all_loyalty_points(modeladmin, request, queryset):
 def delete_invalid_plate_numbers(modeladmin, request, queryset):
     queryset.exclude(plate_number__regex=PLATE_NUMBER_TEMPLATE).delete()
 
+@admin.action(description='Resave loyalty points with filters')
+def resave_loyalty_points_with_filters(modeladmin, request, queryset):
+    for transaction in queryset:
+        transaction.save()
+
 @admin.register(LoyaltyPointsTransaction)
 class LoyaltyPointsTransactionAdmin(ImportExportModelAdmin):
     list_display = ('organization', 'created_at', 'transaction_type', 'car', 'points',
@@ -120,7 +125,7 @@ class LoyaltyPointsTransactionAdmin(ImportExportModelAdmin):
     list_filter = (('created_at', DateTimeRangeFilter),'transaction_type', 'created_by')
     search_fields = ['car__plate_number', 'description']
     readonly_fields = ('created_by',)
-    actions = [delete_all_loyalty_points]
+    actions = [delete_all_loyalty_points, resave_loyalty_points_with_filters]
 
     raw_id_fields = ('fuel_sale', 'car')
     list_select_related = ('fuel_sale', 'car')
