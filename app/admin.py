@@ -60,6 +60,11 @@ class OrganizationAdmin(admin.ModelAdmin):
     list_display = ('name', 'server', 'log_path', 'loyalty_program')
 
 
+@admin.action(description='Resave fuel sales with filters')
+def resave_fuel_sales_with_filters(modeladmin, request, queryset):
+    for sale in queryset:
+        sale.save()
+
 @admin.register(FuelSale)
 class FuelSaleAdmin(ImportExportModelAdmin):
     resource_class = FuelSaleResource
@@ -77,7 +82,7 @@ class FuelSaleAdmin(ImportExportModelAdmin):
         InvalidPlateFilter,
     )
     search_fields = ['plate_number']
-    actions = [fill_plate_numbers]
+    actions = [fill_plate_numbers, resave_fuel_sales_with_filters]
 
     # --------------------------------------------
     # Вот эти три строчки — ключ к быстрой форме:
