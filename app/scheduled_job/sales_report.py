@@ -54,7 +54,7 @@ def generate_sales_report(report_date: datetime, output_path="sales_report.jpg")
     discount_amount = FuelSale.objects.filter(date__range=(start_date, end_date)).aggregate(Sum('discount_amount'))['discount_amount__sum'] or 0
     discount_quantity = discount_amount / price if price else 0
 
-    net_quantity = Decimal(total_quantity) - discount_quantity
+    net_quantity = Decimal(total_quantity) - discount_quantity - Decimal(blacklist_cars) - Decimal(total_invalid_plate_quantity)
     total_sales_sum = net_quantity * price if price else 0
 
     bonus_accrual = LoyaltyPointsTransaction.objects.filter(
@@ -67,7 +67,7 @@ def generate_sales_report(report_date: datetime, output_path="sales_report.jpg")
     data = {
         "Итого продажа": total_quantity,
         "Черный список куб": blacklist_cars,
-        "Cars that not match template": total_invalid_plate_quantity,
+        "Номер не опознан": total_invalid_plate_quantity,
         "Оплата бонус": discount_quantity,
         "Остаток куб": net_quantity,
         "Цена": price,
