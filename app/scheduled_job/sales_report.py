@@ -109,7 +109,7 @@ def send_sales_report():
         print("Отсутствуют токен бота или ID чата для отправки отчета.")
         return
 
-    report_date = datetime.now() 
+    report_date = datetime.now() - timedelta(days=1)  # Отчет за вчера
     output_path = "sales_report.jpg"  # Путь к файлу для сохранения отчета
     generate_sales_report(report_date, output_path)
     

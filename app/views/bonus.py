@@ -4,6 +4,7 @@ from django.views.decorators.http import require_GET
 from django.utils.dateparse import parse_datetime
 from app.models import LoyaltyPointsTransaction
 from django.db import models
+from django.db.models import Q
 
 @require_GET
 def get_bonuses_spent(request):
@@ -22,8 +23,10 @@ def get_bonuses_spent(request):
         return JsonResponse({'error': 'Invalid datetime format'}, status=400)
 
     transactions = LoyaltyPointsTransaction.objects.filter(
-        transaction_type='redeem',
-        created_at__range=(start_datetime, end_datetime)
+        (   Q(fuel_sale__date__range=(start_datetime, end_datetime)) |
+            (Q(fuel_sale=None) & Q(created_at__range=(start_datetime, end_datetime)))   
+        ),
+        transaction_type='redeem'
     )
 
     total_bonuses_spent = transactions.aggregate(total=models.Sum('points'))['total'] or 0
