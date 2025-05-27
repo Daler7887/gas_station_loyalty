@@ -10,14 +10,12 @@ from app.models import FuelSale, Car, LoyaltyPointsTransaction
 from app.utils import PLATE_NUMBER_TEMPLATE 
 from decimal import Decimal
 
-REPORT_BOT_TOKEN="6729597621:AAHrbjeHyIDfAdSPaLLNHWEmzNC6RsvvJnI"
-REPORT_CHAT_ID="-706300022R"
-
 
 def format_value(x):
     if isinstance(x, (int, float, Decimal)):
         return f"{x:,.3f}".replace(",", " ").replace(".000", "") if isinstance(x, int) or x == int(x) else f"{x:,.3f}".replace(",", " ")
     return x
+
 
 def generate_sales_report(report_date: datetime, output_path="sales_report.jpg"):
     # Calculate date range for yesterday
