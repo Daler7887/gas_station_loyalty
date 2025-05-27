@@ -8,7 +8,6 @@ from app.utils.smb_utils import read_file
 from app.utils.hikvision import get_parking_plate_number
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.utils import PLATE_NUMBER_TEMPLATE as plate_templates
-from app.scheduled_job.balance_report import send_balance_report
 import requests
 import logging
 import os
