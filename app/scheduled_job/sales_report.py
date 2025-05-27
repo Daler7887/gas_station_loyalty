@@ -16,7 +16,7 @@ REPORT_CHAT_ID="-706300022R"
 
 def format_value(x):
     if isinstance(x, (int, float, Decimal)):
-        return f"{x:,.3f}".replace(",", " ").replace(".000", "") if isinstance(x, int) or x == int(x) else f"{x:,.2f}".replace(",", " ")
+        return f"{x:,.3f}".replace(",", " ").replace(".000", "") if isinstance(x, int) or x == int(x) else f"{x:,.3f}".replace(",", " ")
     return x
 
 def generate_sales_report(report_date: datetime, output_path="sales_report.jpg"):
