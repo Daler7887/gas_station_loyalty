@@ -69,15 +69,15 @@ def generate_sales_report(report_date: datetime, output_path="sales_report.jpg")
     # Prepare data for the report
 
     data = {
-        "Итого продажа": total_quantity,
-        "Черный список куб": blacklist_cars,
-        "Номер не опознан": total_invalid_plate_quantity,
-        "Оплата бонус": discount_quantity,
-        "Остаток куб": net_quantity,
+        "Итого продажа (м³)": total_quantity,
+        "Черный список (м³)": blacklist_cars,
+        "Номер не опознан (м³)": total_invalid_plate_quantity,
+        "Оплата бонусом (м³)": discount_quantity,
+        "Остаток (м³)": net_quantity,
         "Цена": price,
         "Сумма": total_sales_sum,
-        "Начислено бонус": bonus_accrual,
-        "Оплата по бонусам": discount_amount,
+        "Начислено бонусов": bonus_accrual,
+        "Оплачено бонусами": discount_amount,
     }
 
     # Prepare table data
