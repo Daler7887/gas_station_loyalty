@@ -59,7 +59,7 @@ def generate_sales_report(report_date: datetime, output_path="sales_report.jpg")
     total_sales_sum = net_quantity * price if price else 0
 
     bonus_accrual = LoyaltyPointsTransaction.objects.filter(
-        created_at__range=(start_date, end_date),
+        fuel_sale__date__range=(start_date, end_date),
         transaction_type='accrual'
     ).aggregate(Sum('points'))['points__sum'] or 0
 
