@@ -51,10 +51,11 @@ def generate_sales_report(report_date: datetime, output_path="sales_report.jpg")
         print("Нет продаж за указанный период или цена равна нулю.")
         return
     
-    discount_amount = FuelSale.objects.filter(date__range=(start_date, end_date)).aggregate(Sum('discount_amount'))['discount_amount__sum'] or 0
-    discount_quantity = discount_amount / price if price else 0
+    discount = FuelSale.objects.filter(date__range=(start_date, end_date), discount_amount__gt=0).aggregate(Sum('quantity'), Sum('discount_amount'))
+    discount_quantity = discount['quantity__sum'] or 0
+    discount_amount = discount['discount_amount__sum'] or 0
 
-    net_quantity = Decimal(total_quantity) - discount_quantity - Decimal(blacklist_cars) - Decimal(total_invalid_plate_quantity)
+    net_quantity = Decimal(total_quantity) - Decimal(discount_quantity) - Decimal(blacklist_cars) - Decimal(total_invalid_plate_quantity)
     total_sales_sum = net_quantity * price if price else 0
 
     bonus_accrual = LoyaltyPointsTransaction.objects.filter(
