@@ -117,42 +117,41 @@ class FuelSale(models.Model):
         
         discount = 0
         points = 0
-        if self.organization.loyalty_program and self.plate_number and re.match(PLATE_NUMBER_TEMPLATE, self.plate_number):
-            use_bonus = self.plate_recognition.use_bonus
-            if use_bonus and car.loyalty_points > 0:
-                # Списываем баллы
-                discount = min(car.loyalty_points, self.total_amount)
-                # Создаем транзакцию списания баллов
+        use_bonus = self.plate_recognition.use_bonus
+        if use_bonus and car.loyalty_points > 0:
+            # Списываем баллы
+            discount = min(car.loyalty_points, self.total_amount)
+            # Создаем транзакцию списания баллов
+            LoyaltyPointsTransaction.objects.create(
+                car=car,
+                fuel_sale=self,
+                organization=self.organization,
+                transaction_type='redeem',
+                points=discount,
+                description=f"Потрачено балов для покупки топлива на сумму {self.total_amount}",
+                created_by=None
+            )
+        else:
+            # Рассчитываем баллы
+            points = self.total_amount * self.get_points_percent() / 100
+            if points > 0:
+                # Создаем транзакцию начисления баллов
                 LoyaltyPointsTransaction.objects.create(
                     car=car,
                     fuel_sale=self,
                     organization=self.organization,
-                    transaction_type='redeem',
-                    points=discount,
-                    description=f"Потрачено балов для покупки топлива на сумму {self.total_amount}",
+                    transaction_type='accrual',
+                    points=points,
+                    description=f"Начисление за покупку топлива на сумму {self.total_amount}",
                     created_by=None
                 )
-            else:
-                # Рассчитываем баллы
-                points = self.total_amount * self.get_points_percent() / 100
-                if points > 0:
-                    # Создаем транзакцию начисления баллов
-                    LoyaltyPointsTransaction.objects.create(
-                        car=car,
-                        fuel_sale=self,
-                        organization=self.organization,
-                        transaction_type='accrual',
-                        points=points,
-                        description=f"Начисление за покупку топлива на сумму {self.total_amount}",
-                        created_by=None
-                    )
 
         self.discount_amount = discount
         self.final_amount = self.total_amount - discount
         super().save(update_fields=['discount_amount', 'final_amount'])
 
         # Уведомление пользователю о сумме продажи
-        if is_new and self.plate_number and re.match(PLATE_NUMBER_TEMPLATE, self.plate_number) and self.organization.loyalty_program:
+        if is_new:
             inform_user_sale(car, self.quantity, round(self.final_amount), round(self.total_amount), round(discount), round(points))
 
         class Meta:
@@ -182,7 +181,7 @@ class LoyaltyPointsTransaction(models.Model):
     ]
 
     fuel_sale = models.ForeignKey(
-        FuelSale, on_delete=models.CASCADE, null=True, blank=True, related_name='bonus_transactions', verbose_name="Продажа топлива")
+        FuelSale, on_delete=models.CASCADE, db_index=True, null=True, blank=True, related_name='bonus_transactions', verbose_name="Продажа топлива")
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name="Организация")
     car = models.ForeignKey('Car', on_delete=models.CASCADE, null=True, verbose_name="Автомобиль")
     transaction_type = models.CharField(
