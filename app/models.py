@@ -101,7 +101,11 @@ class FuelSale(models.Model):
         if not is_new:
             LoyaltyPointsTransaction.objects.filter(fuel_sale=self).delete()
         self.final_amount = self.total_amount
+        self.discount_amount = 0
         super().save(*args, **kwargs)
+
+        if not self.plate_recognition or not self.plate_recognition.number or re.match(PLATE_NUMBER_TEMPLATE, self.plate_number):
+            return  # Если нет распознавания номера или номер соответствует шаблону, выходим
 
         car, _ = Car.objects.get_or_create(
                 plate_number=self.plate_number, defaults={'loyalty_points': 0, 'is_blacklisted': False})
