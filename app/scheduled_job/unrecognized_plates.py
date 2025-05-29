@@ -16,7 +16,7 @@ def resolve_unrecognized_plates():
 
         # Если нет последнего, берём предыдущую продажу
         if plate_recog is None and sale.date.date() == datetime.now().date():
-            last_sale = FuelSale.objects.filter(pump=sale.pump, date__gte=sale.date-timedelta(minutes=2), date__lte=sale.date).order_by('-date')
+            last_sale = FuelSale.objects.filter(pump=sale.pump, date__gte=sale.date-timedelta(minutes=2), date__lte=sale.date).order_by('-date').first()
             if last_sale:
                 plate_recog = last_sale.plate_recognition
 
