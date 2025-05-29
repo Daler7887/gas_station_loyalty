@@ -104,7 +104,7 @@ class FuelSale(models.Model):
         self.discount_amount = 0
         super().save(*args, **kwargs)
 
-        if not self.number or not re.match(PLATE_NUMBER_TEMPLATE, self.plate_number):
+        if not self.plate_number or not re.match(PLATE_NUMBER_TEMPLATE, self.plate_number):
             return  # Если нет распознавания номера или номер соответствует шаблону, выходим
 
         car, _ = Car.objects.get_or_create(
