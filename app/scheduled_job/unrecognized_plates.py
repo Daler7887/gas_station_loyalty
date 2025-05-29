@@ -12,7 +12,7 @@ def resolve_unrecognized_plates():
 
         # Если нет подходящих по шаблону, берём последний
         if plate_recog is None:
-            plate_recog = PlateRecognition.objects.filter(pump=sale.pump, recognized_at__gte=sale.date-timedelta(minutes=15), recognized_at_lte=sale.date+timedelta(minutes=1), is_processed=False).order_by('-recognized_at').first()
+            plate_recog = PlateRecognition.objects.filter(pump=sale.pump, recognized_at__gte=sale.date-timedelta(minutes=15), recognized_at__lte=sale.date+timedelta(minutes=1), is_processed=False).order_by('-recognized_at').first()
 
         # Если нет последнего, берём предыдущую продажу
         if plate_recog is None and sale.date.date() == datetime.now().date():
