@@ -58,7 +58,7 @@ class Pump(models.Model):
 class PlateRecognition(models.Model):
     pump = models.ForeignKey(Pump, on_delete=models.CASCADE, null=True, verbose_name='Колонка')
     number = models.CharField(max_length=20, verbose_name="Номер")
-    recognized_at = models.DateTimeField(null=True, verbose_name='Время заезда')
+    recognized_at = models.DateTimeField(verbose_name='Время заезда')
     exit_time = models.DateTimeField(null=True, blank=True ,verbose_name='Время выезда')
     image1 = models.ImageField(upload_to='car_images/', null=True, verbose_name="Изображение 1")
     image2 = models.ImageField(upload_to='car_images/', null=True, verbose_name="Изображение 2")
@@ -86,7 +86,7 @@ class FuelSale(models.Model):
         max_digits=10, decimal_places=2, default=0, verbose_name="Итоговая сумма")
     pump = models.ForeignKey(Pump, on_delete=models.PROTECT, null=True, verbose_name="Колонка")
     plate_recognition = models.ForeignKey(
-        PlateRecognition, models.PROTECT, null=True, verbose_name="Распознавание номера")
+        PlateRecognition, models.PROTECT, null=True, blank=True, verbose_name="Распознавание номера")
     plate_number = models.CharField(max_length=20, null=True, db_index=True, verbose_name="Номер автомобиля")
     new_client = models.BooleanField(default=False, verbose_name="Новый клиент")
 
