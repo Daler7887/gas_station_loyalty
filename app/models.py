@@ -117,7 +117,7 @@ class FuelSale(models.Model):
         
         discount = 0
         points = 0
-        use_bonus = self.plate_recognition.use_bonus
+        use_bonus = self.plate_recognition.use_bonus if self.plate_recognition else False
         if use_bonus and car.loyalty_points > 0:
             # Списываем баллы
             discount = min(car.loyalty_points, self.total_amount)
