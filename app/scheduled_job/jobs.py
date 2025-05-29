@@ -94,11 +94,11 @@ def process_fuel_sales_log():
                 pump, _ = Pump.objects.get_or_create(number=pump_number, organization=org, defaults={
                                                      "number": pump_number, "ip_address": "", "organization": org})
 
-                plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), is_processed=False, number__regex=plate_templates).order_by('-recognized_at').first()
+                plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), recognized_at__lte=timestamp+timedelta(minutes=2),is_processed=False, number__regex=plate_templates).order_by('-recognized_at').first()
 
                 # Если нет подходящих по шаблону, берём последний
                 if plate_recog is None:
-                    plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), is_processed=False).order_by('-recognized_at').first()
+                    plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), recognized_at_lte=timestamp+timedelta(minutes=2), is_processed=False).order_by('-recognized_at').first()
 
                 # Если нет последнего, берём предыдущую продажу
                 if plate_recog is None and timestamp.date() == datetime.now().date():
@@ -132,8 +132,8 @@ def process_fuel_sales_log():
                     org.last_processed_timestamp = timestamp
                     org.save()
 
-                if plate_number is not None and re.match(plate_templates, plate_number):
-                    pass
+                # if plate_number is not None and re.match(plate_templates, plate_number):
+                    # pass
                     # send_sales_info_to_tg(new_log)
 
         except FileNotFoundError as e:
