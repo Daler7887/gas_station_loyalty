@@ -94,15 +94,15 @@ def process_fuel_sales_log():
                 pump, _ = Pump.objects.get_or_create(number=pump_number, organization=org, defaults={
                                                      "number": pump_number, "ip_address": "", "organization": org})
 
-                plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), recognized_at__lte=timestamp+timedelta(minutes=2),is_processed=False, number__regex=plate_templates).order_by('-recognized_at').first()
+                plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), recognized_at__lte=timestamp+timedelta(minutes=1),is_processed=False, number__regex=plate_templates).order_by('-recognized_at').first()
 
                 # Если нет подходящих по шаблону, берём последний
                 if plate_recog is None:
-                    plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), recognized_at_lte=timestamp+timedelta(minutes=2), is_processed=False).order_by('-recognized_at').first()
+                    plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), recognized_at_lte=timestamp+timedelta(minutes=1), is_processed=False).order_by('-recognized_at').first()
 
                 # Если нет последнего, берём предыдущую продажу
                 if plate_recog is None and timestamp.date() == datetime.now().date():
-                    last_sale = FuelSale.objects.filter(pump=pump, date__gte=timestamp-timedelta(minutes=4), date__lte=timestamp).order_by('-date').first()
+                    last_sale = FuelSale.objects.filter(pump=pump, date__gte=timestamp-timedelta(minutes=2), date__lte=timestamp).order_by('-date').first()
                     if last_sale:
                         plate_recog = last_sale.plate_recognition
 
