@@ -9,6 +9,7 @@ class FuelSaleResource(resources.ModelResource):
             'id',
             'date',
             'organization__name',    # если хотите вывести имя организации вместо id
+            'pump__name',            # если хотите вывести имя насоса вместо id
             'quantity',
             'price',
             'total_amount',
