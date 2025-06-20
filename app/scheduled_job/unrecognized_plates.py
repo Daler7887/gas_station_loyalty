@@ -11,7 +11,7 @@ def resolve_unrecognized_plates():
     unrecognized_plate_sales = FuelSale.objects.filter(date__date=datetime.now().date(),plate_recognition__isnull=True, plate_number__isnull=True)
     for sale in unrecognized_plate_sales:
         try:
-            print(f"Обрабатываем sale {sale.id} от {sale.date} колонка {sale.pump.name}")
+            print(f"Обрабатываем sale {sale.id} от {sale.date} колонка {sale.pump.number}")
             plate_recog = PlateRecognition.objects.filter(pump=sale.pump, recognized_at__gte=sale.date-timedelta(minutes=15), recognized_at__lte=sale.date+timedelta(minutes=1),is_processed=False, number__regex=PLATE_NUMBER_TEMPLATE).order_by('-recognized_at').first()
 
             # Если нет подходящих по шаблону, берём последний
@@ -42,6 +42,8 @@ def resolve_unrecognized_plates():
                 if plate_recog:
                     plate_recog.is_processed = True
                     plate_recog.save()
+
+            print(f"Обработано sale {sale.id}: plate_number={sale.plate_number}, new_client={sale.new_client}")
 
         except Exception as e:
             print(f"Ошибка при обработке sale {sale.id}: {e}")
