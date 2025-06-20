@@ -39,10 +39,12 @@ def resolve_unrecognized_plates():
                 sale.plate_recognition = plate_recog
                 sale.new_client = new_client
                 sale.save()
+                print(f"Обновлено sale {sale.id}: plate_number={sale.plate_number}, new_client={sale.new_client}")
 
                 if plate_recog:
                     plate_recog.is_processed = True
                     plate_recog.save()
+                print(f"Обновлено plate_recog {plate_recog.id} как обработанное.")
 
             print(f"Обработано sale {sale.id}: plate_number={sale.plate_number}, new_client={sale.new_client}")
 
