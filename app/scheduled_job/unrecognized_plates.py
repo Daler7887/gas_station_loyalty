@@ -32,6 +32,7 @@ def resolve_unrecognized_plates():
             if plate_number and re.match(PLATE_NUMBER_TEMPLATE, plate_number):
                 new_client = not Car.objects.filter(plate_number=plate_number).exists()
 
+            print(f"Найдено plate_recog: {plate_recog} с номером {plate_number}, новый клиент: {new_client}")
             #Сохраняем изменения в текущей записи FuelSale
             with transaction.atomic():
                 sale.plate_number = plate_number
