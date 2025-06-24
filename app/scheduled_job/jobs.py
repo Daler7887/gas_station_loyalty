@@ -94,22 +94,28 @@ def process_fuel_sales_log():
                 pump, _ = Pump.objects.get_or_create(number=pump_number, organization=org, defaults={
                                                      "number": pump_number, "ip_address": "", "organization": org})
 
-                plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), recognized_at__lte=timestamp+timedelta(minutes=1),is_processed=False, number__regex=plate_templates).order_by('-recognized_at').first()
+                if total_amount >= 2000:
+                    plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), recognized_at__lte=timestamp+timedelta(minutes=1),is_processed=False, number__regex=plate_templates).order_by('-recognized_at').first()
 
-                # Если нет подходящих по шаблону, берём последний
-                if plate_recog is None:
-                    plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), recognized_at__lte=timestamp+timedelta(minutes=1), is_processed=False).order_by('-recognized_at').first()
+                    # Если нет подходящих по шаблону, берём последний
+                    if plate_recog is None:
+                        plate_recog = PlateRecognition.objects.filter(pump=pump, recognized_at__gte=timestamp-timedelta(minutes=15), recognized_at__lte=timestamp+timedelta(minutes=1), is_processed=False).order_by('-recognized_at').first()
 
-                # Если нет последнего, берём предыдущую продажу
-                if plate_recog is None and timestamp.date() == datetime.now().date():
-                    last_sale = FuelSale.objects.filter(pump=pump, date__gte=timestamp-timedelta(minutes=2), date__lte=timestamp).order_by('-date').first()
-                    if last_sale:
-                        plate_recog = last_sale.plate_recognition
+                    # Если нет последнего, берём предыдущую продажу
+                    if plate_recog is None and timestamp.date() == datetime.now().date():
+                        last_sale = FuelSale.objects.filter(pump=pump, date__gte=timestamp-timedelta(minutes=2), date__lte=timestamp).order_by('-date').first()
+                        if last_sale:
+                            plate_recog = last_sale.plate_recognition
 
-                plate_number = plate_recog.number if plate_recog else None
+                    plate_number = plate_recog.number if plate_recog else None
 
-                new_client = not Car.objects.filter(
-                    plate_number=plate_number).exists() if plate_number is not None and re.match(plate_templates, plate_number) else False
+                    new_client = not Car.objects.filter(
+                        plate_number=plate_number).exists() if plate_number is not None and re.match(plate_templates, plate_number) else False
+                else:
+                    plate_recog = None
+                    plate_number = None
+                    new_client = False
+
                 # Сохраняем данные в базе данных
                 new_log = FuelSale(
                     date=timestamp,
