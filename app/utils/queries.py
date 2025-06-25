@@ -270,6 +270,7 @@ def get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date):
             FROM app_car
             JOIN bot_bot_user ON bot_bot_user.car_id = app_car.id
             WHERE (bot_bot_user.car_id IS NOT NULL AND DATE(bot_bot_user.date) < %s)
+                OR app_car.is_blacklisted = TRUE
         ),
         registered_today AS (
             SELECT plate_number
@@ -279,21 +280,21 @@ def get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date):
         )
         SELECT
             p.number AS pump_name,
-            COUNT(*) AS total,
-            COUNT(*) FILTER (WHERE f.plate_number IN (SELECT plate_number FROM registered)) AS was_registered,
-            COUNT(*) FILTER (
+            COUNT(DISTINCT f.plate_number) AS total,
+            COUNT(DISTINCT f.plate_number) FILTER (WHERE f.plate_number IN (SELECT plate_number FROM registered)) AS was_registered,
+            COUNT(DISTINCT f.plate_number) FILTER (
                 WHERE f.plate_number NOT IN (SELECT plate_number FROM registered)
                   AND f.new_client = TRUE
             ) AS unregistered_new,
-            COUNT(*) FILTER (
+            COUNT(DISTINCT f.plate_number) FILTER (
                 WHERE f.plate_number NOT IN (SELECT plate_number FROM registered)
                   AND f.new_client = FALSE
             ) AS unregistered_old,
-            COUNT(*) FILTER (
+            COUNT(DISTINCT f.plate_number) FILTER (
                 WHERE f.plate_number IN (SELECT plate_number FROM registered_today)
                   AND f.new_client = TRUE
             ) AS registered_today_new,
-            COUNT(*) FILTER (
+            COUNT(DISTINCT f.plate_number) FILTER (
                 WHERE f.plate_number IN (SELECT plate_number FROM registered_today)
                   AND f.new_client = FALSE
             ) AS registered_today_old
