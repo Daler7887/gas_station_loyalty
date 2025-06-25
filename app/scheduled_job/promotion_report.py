@@ -25,7 +25,15 @@ def generate_promotion_report(report_date: datetime, output_path="promotion_repo
     pump_sales_data = get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date)
 
     # Prepare table data
-    columns = ["Колонка", "Всего", "Были зарегистрированы", "Были не зарегистрированы (старые)", "Были не зарегистрированы (новые)", "Зарегистрировались (старые)", "Зарегистрировались (новые)"]
+    columns = [
+        'Колонка',
+        'Всего',
+        'Были\nзарегистр.',
+        'Не зарег.\n(новые)',
+        'Не зарег.\n(старые)',
+        'Зарег.\n(новые)',
+        'Зарег.\n(старые)'
+    ]
     rows = []
 
     for pump_data in pump_sales_data:
