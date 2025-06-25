@@ -270,7 +270,6 @@ def get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date):
             FROM app_car
             JOIN bot_bot_user ON bot_bot_user.car_id = app_car.id
             WHERE (bot_bot_user.car_id IS NOT NULL AND DATE(bot_bot_user.date) < %s)
-                OR app_car.is_blacklisted = 1
         ),
         registered_today AS (
             SELECT plate_number
