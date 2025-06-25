@@ -28,7 +28,16 @@ def generate_promotion_report(report_date: datetime, output_path="promotion_repo
     columns = [
         "Колонка", 
         "Всего", 
-        "Были\nзареганы", "Были\nне зареганы\n(старые)", "Были\nне зареганы\n(новые)", "Зарегались\n(старые)", "Зарегались\n(новые)"]
+        "Были зарегистрированы", 
+        "Не зарегистрированы", '', '',
+        "Зарегистрированы сегодня", '', ''
+    ]
+
+    sub_labels = [
+        "","","",
+        "Новые", "Старые",
+        "Новые", "Старые"
+    ]
     rows = []
 
     for pump_data in pump_sales_data:
@@ -63,10 +72,19 @@ def generate_promotion_report(report_date: datetime, output_path="promotion_repo
     # Generate image
     fig, ax = plt.subplots(figsize=(12, 6))
     ax.axis('off')
-    table = ax.table(cellText=df.values, colLabels=df.columns, cellLoc='center', loc='center')
+    table = ax.table(
+        cellText=df.values,
+        colLabels=sub_labels,
+        cellLoc='center',
+        loc='center'
+)
     table.auto_set_font_size(False)
     table.set_fontsize(10)
     table.scale(1, 2)
+
+    # Рисуем вручную объединённые заголовки над группами
+    ax.text(0.31, 1.05, 'Не зарегистрированы', ha='center', va='bottom', fontsize=10, transform=ax.transAxes)
+    ax.text(0.70, 1.05, 'Зарегистрировались', ha='center', va='bottom', fontsize=10, transform=ax.transAxes)
 
     plt.savefig(output_path, bbox_inches='tight', dpi=300)
     plt.close()
