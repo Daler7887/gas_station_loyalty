@@ -33,10 +33,9 @@ def generate_promotion_report(report_date: datetime, output_path="promotion_repo
     #     "Зарегистрированы сегодня", '', ''
     # ]
 
-    sub_labels = [
-        "","","",
-        "Новые", "Старые",
-        "Новые", "Старые"
+    col_labels = [
+        ["", "", "Не зарегистрированы", "", "", "Зарегистрировались", ""],
+        ["Колонка", "Всего", "Были зарегистрированы", "Новые", "Старые", "Новые", "Старые"]
     ]
     rows = []
 
@@ -74,17 +73,20 @@ def generate_promotion_report(report_date: datetime, output_path="promotion_repo
     ax.axis('off')
     table = ax.table(
         cellText=df.values,
-        colLabels=sub_labels,
+        colLabels=col_labels[1],
+        colColours=["#f2f2f2"] * len(col_labels[1]),
         cellLoc='center',
         loc='center'
-)
+    )
     table.auto_set_font_size(False)
     table.set_fontsize(10)
     table.scale(1, 2)
 
     # Рисуем вручную объединённые заголовки над группами
-    ax.text(0.31, 1.05, 'Не зарегистрированы', ha='center', va='bottom', fontsize=10, transform=ax.transAxes)
-    ax.text(0.70, 1.05, 'Зарегистрировались', ha='center', va='bottom', fontsize=10, transform=ax.transAxes)
+    ax.text(0.36, 1.07, 'Не зарегистрированы', ha='center', fontsize=12, transform=ax.transAxes)
+    ax.text(0.78, 1.07, 'Зарегистрировались', ha='center', fontsize=12, transform=ax.transAxes)
+    ax.text(0.09, 1.07, '', ha='center', fontsize=12, transform=ax.transAxes)  # пустая первая колонка
+
 
     plt.savefig(output_path, bbox_inches='tight', dpi=300)
     plt.close()
