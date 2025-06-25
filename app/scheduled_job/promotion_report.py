@@ -53,6 +53,9 @@ def generate_promotion_report(report_date: datetime, output_path="promotion_repo
         rows.append(total_row)
 
     df = pd.DataFrame(rows, columns=columns)
+    if df.empty:
+        print("Нет данных для формирования отчета.")
+        return
 
     # Generate image
     fig, ax = plt.subplots(figsize=(12, 6))
