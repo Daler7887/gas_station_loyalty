@@ -5,6 +5,10 @@ from telegram import Bot
 from asgiref.sync import async_to_sync
 import os
 from app.utils.queries import get_fuel_sales_breakdown_by_pump
+from bot.models import Bot_user
+from app.models import Car
+from django.db.models import Q
+from app.utils import PLATE_NUMBER_TEMPLATE
 
 
 REPORT_BOT_TOKEN = "6729597621:AAHrbjeHyIDfAdSPaLLNHWEmzNC6RsvvJnI" 
@@ -22,21 +26,83 @@ def generate_promotion_report(report_date: datetime, output_path="promotion_repo
     start_date = datetime.combine(report_date.date(), datetime.min.time())
     end_date = datetime.combine(report_date.date(), datetime.max.time())
     # Fetch pump sales data
-    pump_sales_data = get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date)
-
+    # pump_sales_data = get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date)
+    pump_sales_data = [
+    {
+        "pump_name": 2,
+        "total": 227,
+        "was_registered": 105,
+        "unregistered_old": 99,
+        "unregistered_new": 23,
+        "registered_today_old": 6,
+        "registered_today_new": 0
+    },
+    {
+        "pump_name": 3,
+        "total": 257,
+        "was_registered": 97,
+        "unregistered_old": 136,
+        "unregistered_new": 24,
+        "registered_today_old": 7,
+        "registered_today_new": 1
+    },
+    {
+        "pump_name": 4,
+        "total": 285,
+        "was_registered": 118,
+        "unregistered_old": 140,
+        "unregistered_new": 27,
+        "registered_today_old": 14,
+        "registered_today_new": 2
+    },
+    {
+        "pump_name": 5,
+        "total": 283,
+        "was_registered": 122,
+        "unregistered_old": 135,
+        "unregistered_new": 26,
+        "registered_today_old": 16,
+        "registered_today_new": 0
+    },
+    {
+        "pump_name": 6,
+        "total": 314,
+        "was_registered": 135,
+        "unregistered_old": 162,
+        "unregistered_new": 17,
+        "registered_today_old": 5,
+        "registered_today_new": 0
+    },
+    {
+        "pump_name": 7,
+        "total": 309,
+        "was_registered": 148,
+        "unregistered_old": 152,
+        "unregistered_new": 9,
+        "registered_today_old": 11,
+        "registered_today_new": 0
+    },
+    {
+        "pump_name": 8,
+        "total": 237,
+        "was_registered": 107,
+        "unregistered_old": 106,
+        "unregistered_new": 24,
+        "registered_today_old": 3,
+        "registered_today_new": 0
+    },
+]
     # Prepare table data
-    # columns = [
-    #     "Колонка", 
-    #     "Всего", 
-    #     "Были зарегистрированы", 
-    #     "Не зарегистрированы", '', '',
-    #     "Зарегистрированы сегодня", '', ''
-    # ]
-
-    col_labels = [
-        ["", "", "Не зарегистрированы", "", "", "Зарегистрировались", ""],
-        ["Колонка", "Всего", "Были зарегистрированы", "Новые", "Старые", "Новые", "Старые"]
+    columns = [
+        "Колонка", 
+        "Всего", 
+        "Были зарег.",
+        "Не зарег.\n(старые)",
+        "Не зарег.\n(новые)",
+        "Зарегистр.\n(старые)",
+        "Зарегистр.\n(новые)"
     ]
+
     rows = []
 
     for pump_data in pump_sales_data:
@@ -63,7 +129,18 @@ def generate_promotion_report(report_date: datetime, output_path="promotion_repo
         ]
         rows.append(total_row)
 
-    df = pd.DataFrame(rows)
+    registered_total = Car.objects.filter(
+        Q(bot_user__isnull=False, bot_user__date__lt=report_date.date()) |
+        Q(is_blacklisted=True)
+    ).values('plate_number').distinct().count()
+    total_cars = Car.objects.filter(plate_number__regex=PLATE_NUMBER_TEMPLATE).count()
+    data2 = [
+        ["Всего автомобилей", format_value(total_cars)],
+        ["Зарегистрированных", format_value(registered_total)],
+        ["Процент зарегистрированных", format_value(f"{(registered_total / total_cars * 100 if total_cars != 0 else 0):.2f}%")]
+    ]
+
+    df = pd.DataFrame(rows, columns=columns)
     if df.empty:
         print("Нет данных для формирования отчета.")
         return
@@ -71,23 +148,24 @@ def generate_promotion_report(report_date: datetime, output_path="promotion_repo
     # Generate image
     fig, ax = plt.subplots(figsize=(12, 6))
     ax.axis('off')
-    table = ax.table(
-        cellText=df.values,
-        colLabels=col_labels[1],
-        colColours=["#f2f2f2"] * len(col_labels[1]),
-        cellLoc='center',
-        loc='center'
-    )
-    table.auto_set_font_size(False)
-    table.set_fontsize(10)
-    table.scale(1, 2)
+    table1 = ax.table(
+            cellText=df.values,
+            cellLoc='center',
+            colLabels=df.columns,
+            loc='center'
+        )
 
-    # Рисуем вручную объединённые заголовки над группами
-    ax.text(0.36, 1.07, 'Не зарегистрированы', ha='center', fontsize=12, transform=ax.transAxes)
-    ax.text(0.78, 1.07, 'Зарегистрировались', ha='center', fontsize=12, transform=ax.transAxes)
-    ax.text(0.09, 1.07, '', ha='center', fontsize=12, transform=ax.transAxes)  # пустая первая колонка
+    table1.auto_set_font_size(False)
+    table1.set_fontsize(10)
+    table1.scale(1.2, 1.8)
+    
 
+    table2 = ax.table(cellText=data2, cellLoc="center", loc="upper center", bbox=[0, -0.2, 1, 0.3])
+    table2.auto_set_font_size(False)
+    table2.set_fontsize(10)
+    table2.scale(1, 1.5)
 
+    plt.tight_layout()
     plt.savefig(output_path, bbox_inches='tight', dpi=300)
     plt.close()
     
