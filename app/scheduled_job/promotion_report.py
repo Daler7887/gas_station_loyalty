@@ -25,13 +25,13 @@ def generate_promotion_report(report_date: datetime, output_path="promotion_repo
     pump_sales_data = get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date)
 
     # Prepare table data
-    columns = [
-        "Колонка", 
-        "Всего", 
-        "Были зарегистрированы", 
-        "Не зарегистрированы", '', '',
-        "Зарегистрированы сегодня", '', ''
-    ]
+    # columns = [
+    #     "Колонка", 
+    #     "Всего", 
+    #     "Были зарегистрированы", 
+    #     "Не зарегистрированы", '', '',
+    #     "Зарегистрированы сегодня", '', ''
+    # ]
 
     sub_labels = [
         "","","",
@@ -64,7 +64,7 @@ def generate_promotion_report(report_date: datetime, output_path="promotion_repo
         ]
         rows.append(total_row)
 
-    df = pd.DataFrame(rows, columns=columns)
+    df = pd.DataFrame(rows)
     if df.empty:
         print("Нет данных для формирования отчета.")
         return
