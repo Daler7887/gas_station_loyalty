@@ -261,3 +261,58 @@ def get_pump_info():
         })
 
     return pump_info
+
+
+def get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date):
+    query = """
+        WITH registered AS (
+            SELECT plate_number
+            FROM app_car
+            JOIN app_botuser ON app_car.botuser_id = app_botuser.id
+            WHERE (app_car.botuser_id IS NOT NULL AND DATE(app_botuser.date) < %s)
+                  OR app_car.is_blocked = true
+        ),
+        registered_today AS (
+            SELECT plate_number
+            FROM app_car
+            JOIN app_botuser ON app_car.botuser_id = app_botuser.id
+            WHERE app_car.botuser_id IS NOT NULL AND DATE(app_botuser.date) = %s
+        )
+        SELECT
+            p.name AS pump_name,
+            COUNT(*) AS total,
+            COUNT(*) FILTER (WHERE f.plate_number IN (SELECT plate_number FROM registered)) AS was_registered,
+            COUNT(*) FILTER (
+                WHERE f.plate_number NOT IN (SELECT plate_number FROM registered)
+                  AND f.new_client = TRUE
+            ) AS unregistered_new,
+            COUNT(*) FILTER (
+                WHERE f.plate_number NOT IN (SELECT plate_number FROM registered)
+                  AND f.new_client = FALSE
+            ) AS unregistered_old,
+            COUNT(*) FILTER (
+                WHERE f.plate_number IN (SELECT plate_number FROM registered_today)
+                  AND f.new_client = TRUE
+            ) AS registered_today_new,
+            COUNT(*) FILTER (
+                WHERE f.plate_number IN (SELECT plate_number FROM registered_today)
+                  AND f.new_client = FALSE
+            ) AS registered_today_old
+        FROM app_fuelsale f
+        JOIN app_pump p ON p.id = f.pump_id
+        WHERE f.date BETWEEN %s AND %s
+        GROUP BY p.name
+    """
+
+    with connection.cursor() as cursor:
+            cursor.execute(query, [
+                report_date.date(),
+                report_date.date(),
+                start_date,
+                end_date
+            ])
+            rows = cursor.fetchall()
+            if not rows:
+                return []
+            columns = [col[0] for col in cursor.description]
+            return [dict(zip(columns, row)) for row in rows]
