@@ -5,7 +5,6 @@ from telegram import Bot
 from asgiref.sync import async_to_sync
 import os
 from app.utils.queries import get_fuel_sales_breakdown_by_pump
-from bot.models import Bot_user
 from app.models import Car
 from django.db.models import Q
 from app.utils import PLATE_NUMBER_TEMPLATE
@@ -26,79 +25,14 @@ def generate_promotion_report(report_date: datetime, output_path="promotion_repo
     start_date = datetime.combine(report_date.date(), datetime.min.time())
     end_date = datetime.combine(report_date.date(), datetime.max.time())
     # Fetch pump sales data
-    # pump_sales_data = get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date)
-    pump_sales_data = [
-    {
-        "pump_name": 2,
-        "total": 227,
-        "was_registered": 105,
-        "unregistered_old": 99,
-        "unregistered_new": 23,
-        "registered_today_old": 6,
-        "registered_today_new": 0
-    },
-    {
-        "pump_name": 3,
-        "total": 257,
-        "was_registered": 97,
-        "unregistered_old": 136,
-        "unregistered_new": 24,
-        "registered_today_old": 7,
-        "registered_today_new": 1
-    },
-    {
-        "pump_name": 4,
-        "total": 285,
-        "was_registered": 118,
-        "unregistered_old": 140,
-        "unregistered_new": 27,
-        "registered_today_old": 14,
-        "registered_today_new": 2
-    },
-    {
-        "pump_name": 5,
-        "total": 283,
-        "was_registered": 122,
-        "unregistered_old": 135,
-        "unregistered_new": 26,
-        "registered_today_old": 16,
-        "registered_today_new": 0
-    },
-    {
-        "pump_name": 6,
-        "total": 314,
-        "was_registered": 135,
-        "unregistered_old": 162,
-        "unregistered_new": 17,
-        "registered_today_old": 5,
-        "registered_today_new": 0
-    },
-    {
-        "pump_name": 7,
-        "total": 309,
-        "was_registered": 148,
-        "unregistered_old": 152,
-        "unregistered_new": 9,
-        "registered_today_old": 11,
-        "registered_today_new": 0
-    },
-    {
-        "pump_name": 8,
-        "total": 237,
-        "was_registered": 107,
-        "unregistered_old": 106,
-        "unregistered_new": 24,
-        "registered_today_old": 3,
-        "registered_today_new": 0
-    },
-]
+    pump_sales_data = get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date)
     # Prepare table data
     columns = [
         "Колонка", 
         "Всего", 
         "Были зарег.",
-        "Не зарег.\n(старые)",
-        "Не зарег.\n(новые)",
+        "Не были зарег.\n(старые)",
+        "Не были зарег.\n(новые)",
         "Зарегистр.\n(старые)",
         "Зарегистр.\n(новые)"
     ]
