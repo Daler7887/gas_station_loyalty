@@ -8,10 +8,7 @@ from app.utils.queries import get_fuel_sales_breakdown_by_pump
 from app.models import Car
 from django.db.models import Q
 from app.utils import PLATE_NUMBER_TEMPLATE
-
-
-REPORT_BOT_TOKEN = "6729597621:AAHrbjeHyIDfAdSPaLLNHWEmzNC6RsvvJnI" 
-REPORT_CHAT_ID = "-706300022"  # Замените на ваш ID чата
+from config import REPORT_BOT_TOKEN, REPORT_CHAT_ID
 
 
 def format_value(x):
