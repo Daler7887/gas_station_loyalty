@@ -276,7 +276,7 @@ def get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date):
             SELECT plate_number
             FROM app_car
             JOIN bot_bot_user ON bot_bot_user.car_id = app_car.id
-            WHERE bot_bot_user.car_id IS NOT NULL AND DATE(bot_bot_user.date) = %s
+            WHERE bot_bot_user.car_id IS NOT NULL AND DATE(bot_bot_user.date) = %s AND app_car.is_blacklisted = FALSE
         )
         SELECT
             p.number AS pump_name,
