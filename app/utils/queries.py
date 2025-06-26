@@ -278,6 +278,14 @@ def get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date):
             JOIN bot_bot_user ON bot_bot_user.car_id = app_car.id
             WHERE bot_bot_user.car_id IS NOT NULL AND DATE(bot_bot_user.date) = %s AND app_car.is_blacklisted = FALSE
         )
+        new_clients AS (
+            SELECT f.plate_number, MAX(f.new_client::int) AS is_new
+            FROM app_fuelsale f
+            WHERE f.date BETWEEN %s AND %s
+                AND f.plate_number IS NOT NULL
+                AND f.plate_number NOT IN (SELECT plate_number FROM registered)
+            GROUP BY f.plate_number
+        )
         SELECT
             p.number AS pump_name,
             COUNT(DISTINCT f.plate_number) AS total,
@@ -288,6 +296,7 @@ def get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date):
             ) AS unregistered_new,
             COUNT(DISTINCT f.plate_number) FILTER (
                 WHERE f.plate_number NOT IN (SELECT plate_number FROM registered)
+                  AND f.plate_number NOT IN (SELECT plate_number FROM new_clients)
                   AND f.new_client = FALSE
             ) AS unregistered_old,
             COUNT(DISTINCT f.plate_number) FILTER (
@@ -296,6 +305,7 @@ def get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date):
             ) AS registered_today_new,
             COUNT(DISTINCT f.plate_number) FILTER (
                 WHERE f.plate_number IN (SELECT plate_number FROM registered_today)
+                  AND f.plate_number IN (SELECT plate_number FROM registered)
                   AND f.new_client = FALSE
             ) AS registered_today_old
         FROM app_fuelsale f
@@ -308,8 +318,8 @@ def get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date):
             cursor.execute(query, [
                 report_date.date(),
                 report_date.date(),
-                start_date,
-                end_date
+                start_date, end_date,
+                start_date, end_date,
             ])
             rows = cursor.fetchall()
             if not rows:
