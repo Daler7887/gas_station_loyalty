@@ -14,8 +14,8 @@ class Command(BaseCommand):
         scheduler.add_job(process_fuel_sales_log, 'interval', seconds=5)
         scheduler.add_job(delete_old_files, 'cron', hour=3, minute=0)
         scheduler.add_job(send_balance_report, 'cron', hour=0, minute=0)
-        scheduler.add_job(send_sales_report, 'cron', hour=0, minute=0)
-        scheduler.add_job(send_promotion_report, 'cron', hour=0, minute=0)
+        scheduler.add_job(send_sales_report, 'cron', hour=0, minute=1)
+        scheduler.add_job(send_promotion_report, 'cron', hour=0, minute=2)
         scheduler.add_job(resolve_unrecognized_plates, 'interval', hours=2)
         scheduler.start()
 
