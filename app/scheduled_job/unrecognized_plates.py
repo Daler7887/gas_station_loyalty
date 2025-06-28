@@ -8,7 +8,8 @@ def resolve_unrecognized_plates():
     """
     This function is a placeholder for resolving unrecognized plates.
     """
-    unrecognized_plate_sales = FuelSale.objects.filter(date__date=datetime.now().date(),plate_recognition__isnull=True, plate_number__isnull=True, total_amount__gte=2000)
+    unrecognized_plate_sales = FuelSale.objects.filter(date__gte=datetime.now()-timedelta(days=2),
+                                                       plate_recognition__isnull=True, plate_number__isnull=True, total_amount__gte=2000)
     for sale in unrecognized_plate_sales:
         try:
             print(f"Обрабатываем sale {sale.id} от {sale.date} колонка {sale.pump.number}")
