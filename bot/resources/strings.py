@@ -198,6 +198,14 @@ Bizni tanlaganingiz uchun rahmat! 🚗💨",
         "Бонусы недоступны после оформления продажи."
     ],
     "please register": [
+        "🚗 <b>Ma’lumotlaringizni tekshiring — bonuslaringiz sizni kutmoqda!</b>\n\n"
+        "Hurmatli mijoz, sotib olishlaringiz uchun bonuslar olish uchun profilingizda quyidagi ma’lumotlar to‘g‘ri kiritilganligiga ishonch hosil qiling:\n"
+        "• <b>avtomobil raqami</b>\n"
+        "• <b>amal qilayotgan telefon raqami</b>\n\n"
+        "Bu tizimning bonus ballarni to‘g‘ri hisoblashiga yordam beradi.\n\n"
+        "Ma’lumotlarni Telegram-bot orqali tekshirishingiz va yangilashingiz mumkin — bu bor-yo‘g‘i bir necha daqiqa vaqt oladi.\n\n"
+        "Biz bilan bo‘lganingiz uchun rahmat!\n"
+        "<b>Ishonch raqami:</b> <a href=\"tel:+998979290209\">+998 97 929 02 09</a>",
         "🚗 <b>Проверьте данные — ваши бонусы ждут вас!</b>\n\n"
         "Уважаемый клиент, чтобы получать бонусы за покупки, пожалуйста, убедитесь, что в вашем профиле указаны:\n"
         "• <b>номер автомобиля</b>\n"
@@ -206,13 +214,5 @@ Bizni tanlaganingiz uchun rahmat! 🚗💨",
         "Вы можете проверить и обновить данные в Telegram-боте — это займёт всего минуту.\n\n"
         "Спасибо, что вы с нами!\n"
         "<b>Телефон доверия:</b> <a href=\"tel:+998979290209\">+998 97 929 02 09</a>",
-        "🚗 <b>Ma’lumotlaringizni tekshiring — bonuslaringiz sizni kutmoqda!</b>\n\n"
-        "Hurmatli mijoz, sotib olishlaringiz uchun bonuslar olish uchun profilingizda quyidagi ma’lumotlar to‘g‘ri kiritilganligiga ishonch hosil qiling:\n"
-        "• <b>avtomobil raqami</b>\n"
-        "• <b>amal qilayotgan telefon raqami</b>\n\n"
-        "Bu tizimning bonus ballarni to‘g‘ri hisoblashiga yordam beradi.\n\n"
-        "Ma’lumotlarni Telegram-bot orqali tekshirishingiz va yangilashingiz mumkin — bu bor-yo‘g‘i bir necha daqiqa vaqt oladi.\n\n"
-        "Biz bilan bo‘lganingiz uchun rahmat!\n"
-        "<b>Ishonch raqami:</b> <a href=\"tel:+998979290209\">+998 97 929 02 09</a>"
     ],
 }

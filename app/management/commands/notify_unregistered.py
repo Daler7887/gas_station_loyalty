@@ -8,14 +8,13 @@ from bot.services.language_service import get_word
 
 async def notify_unregistered_users():
     unregistered_users = Bot_user.objects.filter(
-        # car__isnull=True,
-        phone="+998974088009"
+        car__isnull=True,
     )
     async for user in unregistered_users:
         # Here you would implement the logic to notify the user
         # For example, sending a message via a bot or email
         print(f"Notifying user: {user.phone}")
-        print(await send_newsletter(bot, user.user_id, await get_word("please register", chat_id = user.user_id)))
+        await send_newsletter(bot, user.user_id, await get_word("please register", chat_id = user.user_id))
         
 
 class Command(BaseCommand):
