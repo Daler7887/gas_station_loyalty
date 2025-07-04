@@ -15,7 +15,7 @@ async def notify_unregistered_users():
         # Here you would implement the logic to notify the user
         # For example, sending a message via a bot or email
         print(f"Notifying user: {user.phone}")
-        print(await send_newsletter(bot, user.user_id, await get_word("please register", user.lang)))
+        print(await send_newsletter(bot, user.user_id, await get_word("please register", chat_id = user.user_id)))
         
 
 class Command(BaseCommand):
