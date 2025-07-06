@@ -8,6 +8,7 @@ from app.utils.queries import get_fuel_sales_breakdown_by_pump_new
 from app.models import Car
 from django.db.models import Q
 from app.utils import PLATE_NUMBER_TEMPLATE
+import asyncio
 
 REPORT_BOT_TOKEN = "6729597621:AAHrbjeHyIDfAdSPaLLNHWEmzNC6RsvvJnI"
 REPORT_CHAT_ID = "-706300022"  # Replace with your actual chat ID
@@ -59,7 +60,7 @@ def generate_promotion_report(start_date, end_date, output_path="promotion_repor
         rows.append(total_row)
 
     registered_total = Car.objects.filter(
-        Q(bot_user__isnull=False, bot_user__date__lt=start_date.date()) |
+        Q(bot_user__isnull=False, bot_user__date__lt=end_date) |
         Q(is_blacklisted=True)
     ).values('plate_number').distinct().count()
     total_cars = Car.objects.filter(plate_number__regex=PLATE_NUMBER_TEMPLATE).count()
@@ -120,6 +121,7 @@ async def send_promotion_report_new():
         output_path = f"promotion_report_{start_time.strftime('%Y%m%d_%H')}.jpg"
         await sync_to_async(generate_promotion_report)(start_time, end_time, output_path)
 
+        asyncio.sleep(0.5)  # Добавляем небольшую задержку для предотвращения перегрузки
         await send_telegram_report(
             image_path=output_path,
             bot_token=REPORT_BOT_TOKEN,
