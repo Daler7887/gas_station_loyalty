@@ -9,9 +9,8 @@ from app.models import Car
 from django.db.models import Q
 from app.utils import PLATE_NUMBER_TEMPLATE
 import asyncio
+from config import REPORT_BOT_TOKEN, REPORT_CHAT_ID
 
-REPORT_BOT_TOKEN = "6729597621:AAHrbjeHyIDfAdSPaLLNHWEmzNC6RsvvJnI"
-REPORT_CHAT_ID = "-706300022"  # Replace with your actual chat ID
 
 def format_value(x):
     if isinstance(x, (int, float)):
@@ -126,7 +125,7 @@ async def send_promotion_report_new():
             image_path=output_path,
             bot_token=REPORT_BOT_TOKEN,
             chat_id=REPORT_CHAT_ID,
-            caption=f"📊 Отчет по продвижению за {start_time.strftime('%d.%m.%Y %H:%M')}"
+            caption=f"📊 Отчет по продвижению за {start_time.strftime('%d.%m.%Y %H:%M-')+end_time.strftime('%H:%M')}"
         )
 
         # Удаление файла после отправки
