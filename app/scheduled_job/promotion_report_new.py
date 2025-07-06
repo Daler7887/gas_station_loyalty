@@ -121,7 +121,7 @@ async def send_promotion_report_new():
         output_path = f"promotion_report_{start_time.strftime('%Y%m%d_%H')}.jpg"
         await sync_to_async(generate_promotion_report)(start_time, end_time, output_path)
 
-        asyncio.sleep(0.5)  # Добавляем небольшую задержку для предотвращения перегрузки
+        await asyncio.sleep(0.5)  # Добавляем небольшую задержку для предотвращения перегрузки
         await send_telegram_report(
             image_path=output_path,
             bot_token=REPORT_BOT_TOKEN,
