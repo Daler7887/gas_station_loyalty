@@ -365,6 +365,7 @@ def get_fuel_sales_breakdown_by_pump_new(start_date, end_date):
             ) AS unregistered_old,
             COUNT(DISTINCT f.plate_number) FILTER (
                 WHERE f.plate_number IN (SELECT plate_number FROM registered_today)
+                    AND f.plate_number IN (SELECT plate_number FROM new_clients)
             ) AS registered_today_new,
             COUNT(DISTINCT f.plate_number) FILTER (
                 WHERE f.plate_number IN (SELECT plate_number FROM registered_today)
