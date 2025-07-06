@@ -325,3 +325,66 @@ def get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date):
                 return []
             columns = [col[0] for col in cursor.description]
             return [dict(zip(columns, row)) for row in rows]
+
+
+def get_fuel_sales_breakdown_by_pump_new(start_date, end_date):
+    query = """
+        WITH registered AS (
+            SELECT plate_number
+            FROM app_car
+            JOIN bot_bot_user ON bot_bot_user.car_id = app_car.id
+            WHERE (bot_bot_user.car_id IS NOT NULL AND bot_bot_user.date < %s)
+                OR app_car.is_blacklisted = TRUE
+        ),
+        registered_today AS (
+            SELECT plate_number
+            FROM app_car
+            JOIN bot_bot_user ON bot_bot_user.car_id = app_car.id
+            WHERE bot_bot_user.car_id IS NOT NULL AND bot_bot_user.date BETWEEN %s AND %s AND app_car.is_blacklisted = FALSE
+        ),
+        new_clients AS (
+            SELECT f.plate_number
+            FROM app_fuelsale f
+            WHERE f.date BETWEEN %s AND %s
+            AND f.plate_number IS NOT NULL
+            AND f.plate_number NOT IN (SELECT plate_number FROM registered)
+            GROUP BY f.plate_number
+            HAVING MAX(f.new_client::int) = 1
+        )
+        SELECT
+            p.number AS pump_name,
+            COUNT(DISTINCT f.plate_number) AS total,
+            COUNT(DISTINCT f.plate_number) FILTER (WHERE f.plate_number IN (SELECT plate_number FROM registered)) AS was_registered,
+            COUNT(DISTINCT f.plate_number) FILTER (
+                WHERE f.plate_number NOT IN (SELECT plate_number FROM registered)
+                  AND f.plate_number IN (SELECT plate_number FROM new_clients)
+            ) AS unregistered_new,
+            COUNT(DISTINCT f.plate_number) FILTER (
+                WHERE f.plate_number NOT IN (SELECT plate_number FROM registered)
+                  AND f.plate_number NOT IN (SELECT plate_number FROM new_clients)
+            ) AS unregistered_old,
+            COUNT(DISTINCT f.plate_number) FILTER (
+                WHERE f.plate_number IN (SELECT plate_number FROM registered_today)
+            ) AS registered_today_new,
+            COUNT(DISTINCT f.plate_number) FILTER (
+                WHERE f.plate_number IN (SELECT plate_number FROM registered_today)
+                    AND f.plate_number NOT IN (SELECT plate_number FROM new_clients)
+            ) AS registered_today_old
+        FROM app_fuelsale f
+        JOIN app_pump p ON p.id = f.pump_id
+        WHERE f.date BETWEEN %s AND %s
+        GROUP BY p.number
+    """
+
+    with connection.cursor() as cursor:
+            cursor.execute(query, [
+                start_date,
+                start_date, end_date,
+                start_date, end_date,
+                start_date, end_date,
+            ])
+            rows = cursor.fetchall()
+            if not rows:
+                return []
+            columns = [col[0] for col in cursor.description]
+            return [dict(zip(columns, row)) for row in rows]
