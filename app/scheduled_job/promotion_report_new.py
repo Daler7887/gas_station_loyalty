@@ -118,7 +118,7 @@ async def send_promotion_report_new():
         start_time = report_date.replace(hour=hour, minute=0, second=0, microsecond=0)
         end_time = start_time + timedelta(hours=1)
         output_path = f"promotion_report_{start_time.strftime('%Y%m%d_%H')}.jpg"
-        sync_to_async(generate_promotion_report)(start_time, end_time, output_path)
+        await sync_to_async(generate_promotion_report)(start_time, end_time, output_path)
 
         await send_telegram_report(
             image_path=output_path,
