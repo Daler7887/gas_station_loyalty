@@ -1,6 +1,6 @@
 lang_dict = {
 
-    "hello": """Xush kelibsiz! Yonilg‘i quyib, bonuslarga ega bo‘ling! ⛽🎉\n\n🚀 Endi bizda yonilg‘i quyish yanada foydali – har bir xaridingiz uchun ball to‘plashingiz va ularni chegirmalarga almashtirishingiz mumkin.\n\n⚠ Diqqat! Bot sinov rejimida ishlamoqda, to‘plangan ballardan hozircha foydalanib bo‘lmaydi.\n\nBot tilini tanlang \U0001F1FA\U0001F1FF\n\n ➖➖➖➖➖➖➖➖➖➖➖➖\nДобро пожаловать! Заправляйтесь и получайте бонусы! ⛽🎉\n\n🚀 Теперь заправляться у нас еще выгоднее – за каждую покупку вы получаете баллы, которые можно обменять на скидки. \n\n⚠ Внимание! Бот работает в тестовом режиме, начисленные баллы пока невозможно использовать.\n\n Выберите язык бота \U0001F1F7\U0001F1FA""",
+    "hello": """Xush kelibsiz! Yonilg‘i quyib, bonuslarga ega bo‘ling! ⛽🎉\n\n🚀 Endi bizda yonilg‘i quyish yanada foydali – har bir xaridingiz uchun ball to‘plashingiz va ularni chegirmalarga almashtirishingiz mumkin.\n\nBot tilini tanlang \U0001F1FA\U0001F1FF\n\n ➖➖➖➖➖➖➖➖➖➖➖➖\nДобро пожаловать! Заправляйтесь и получайте бонусы! ⛽🎉\n\n🚀 Теперь заправляться у нас еще выгоднее – за каждую покупку вы получаете баллы, которые можно обменять на скидки. \n\nВыберите язык бота \U0001F1F7\U0001F1FA""",
     "added group": "Чат успешно добавлена ✅",
     "uz_ru": ["UZ 🇺🇿", "RU 🇷🇺"],
     "main menu": ["Asosiy menyu 🏠", "Главное меню 🏠"],
@@ -122,8 +122,8 @@ lang_dict = {
         "Изменить номер автомобиля 🚗"
     ],
     "user balance": [
-        "💳 Sizning balansingiz: *{}* ball",
-        "💳 Ваш баланс: *{}* балов"
+        "💳 Sizning balansingiz: *{}* so'm",
+        "💳 Ваш баланс: *{}* сум"
     ],
     "send new plate number": [
         "Yangi avtomobil raqamingizni yuboring!",
@@ -163,14 +163,14 @@ lang_dict = {
         "⛽️ Yonilg‘i quyish yakunlandi!\n\
 Siz {} m³ yonilg‘i quyib oldingiz.\n\n\
 💵 To‘lov summasi: <b>{}</b>\n\
-🎉 Sizga {} bonus ball qo‘shildi!\n\n\
-💳 Yangi bonus balansi: {} ball.\n\n\
+🎉 Sizga {} so'm qo‘shildi!\n\n\
+💳 Yangi bonus balansi: {} so'm.\n\n\
 Bizni tanlaganingiz uchun rahmat! 🚗💨",
         "⛽️ Заправка завершена!\n\
 Вы заправили {} m³.\n\n\
 💵 Сумма к оплате: <b>{}</b>\n\
-🎉 Вам начислены {} бонусных баллов!\n\n\
-💳 Ваш новый бонусный баланс: {} баллов.\n\n\
+🎉 Вам начислены {} бонусных сум!\n\n\
+💳 Ваш новый бонусный баланс: {} сум.\n\n\
 Спасибо, что заправляетесь у нас! 🚗💨"
     ],
     "sale success discount": [
@@ -178,14 +178,14 @@ Bizni tanlaganingiz uchun rahmat! 🚗💨",
 Siz {} m³ yonilg‘i quyib oldingiz.\n\n\
 💵 To‘lov summasi: <s>{}</s> ➡ <b>{}</b>\n\
 🎁 Bonus hisobidan chegirma: {}\n\n\
-💳 Yangi bonus balansi: {} ball.\n\n\
+💳 Yangi bonus balansi: {} so'm.\n\n\
 Siz yonilg‘i uchun ballar orqali to‘lov qildingiz. Agar kassa xodimi sizdan to‘liq to‘lovni talab qilsa, iltimos, qo‘llab-quvvatlash xizmatiga qo‘ng‘iroq qiling: +998 97 929 02 09\n\n\
 Bizni tanlaganingiz uchun rahmat! 🚗💨",
         "⛽️ Заправка завершена!\n\
 Вы заправили {} m³ литров.\n\n\
 💵 Сумма к оплате: <s>{}</s> ➡ <b>{}</b>\n\
-🎁 Использовано {} бонусных баллов\n\n\
-💳 Ваш новый бонусный баланс: {} баллов.\n\n\
+🎁 Использовано {} бонусных сум\n\n\
+💳 Ваш новый бонусный баланс: {} сум.\n\n\
 Вы оплатили заправку баллами, если кассир у вас требует с вас полную сумму, позвоните в службу поддержки: +998 97 929 02 09\n\n\
 Спасибо, что заправляетесь у нас! 🚗💨"
     ],
