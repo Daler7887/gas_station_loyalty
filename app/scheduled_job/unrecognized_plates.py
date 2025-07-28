@@ -12,6 +12,9 @@ def resolve_unrecognized_plates():
                                                        plate_recognition__isnull=True, plate_number__isnull=True, total_amount__gte=2000)
     for sale in unrecognized_plate_sales:
         try:
+            if sale.total_amount < 2000:
+                print(f"Пропускаем sale {sale.id} с суммой {sale.total_amount} меньше 2000")
+                continue
             print(f"Обрабатываем sale {sale.id} от {sale.date} колонка {sale.pump.number}")
             plate_recog = PlateRecognition.objects.filter(pump=sale.pump, recognized_at__gte=sale.date-timedelta(minutes=15), recognized_at__lte=sale.date+timedelta(minutes=1),is_processed=False, number__regex=PLATE_NUMBER_TEMPLATE).order_by('-recognized_at').first()
 
