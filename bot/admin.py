@@ -24,6 +24,21 @@ class Bot_userAdmin(admin.ModelAdmin):
     edit_button.short_description = 'Действие'
 
 
+class Bot_userInline(admin.StackedInline):
+    model = Bot_user
+    extra = 0
+    fields = ['name', 'username', 'phone', 'car', 'date']
+    readonly_fields = ['name', 'username', 'phone', 'car', 'date']
+    can_delete = False
+    show_change_link = True
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 class MesageAdmin(admin.ModelAdmin):
     list_display = ['bot_users_name', 'small_text',
                     'open_photo', 'open_video', 'open_file', 'date']
@@ -35,6 +50,7 @@ class MesageAdmin(admin.ModelAdmin):
 
     )
     actions = ['send_message']
+    filter_horizontal = ['bot_users',]
 
     def bot_users_name(self, obj):
         result = ''
