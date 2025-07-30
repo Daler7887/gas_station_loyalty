@@ -17,7 +17,12 @@ def get_file(request, path):
 class DashboardData(APIView):
     def get(self, request):
         # sales data
-        year_sales = get_year_sales()
+        #TODO should check permissions for org_id
+        org_id = request.GET.get('org_id')
+        if not org_id:
+            return Response({'error': 'org_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        year_sales = get_year_sales(org_id)
         sales_month_count = year_sales.count()
         this_month_sales = year_sales.last().get('total', 0) if sales_month_count > 0 else 0
         sales_increase_percent = 0
@@ -40,7 +45,7 @@ class DashboardData(APIView):
                 (this_month_new_customers - last_month_new_customers) / last_month_new_customers) * 100
 
         # bonuses data
-        bonuses_earned = get_bonuses_earned()
+        bonuses_earned = get_bonuses_earned(org_id)
         bonuses_earned_count = bonuses_earned.count()
         this_month_bonuses_earned = bonuses_earned.last().get('total', 0) if bonuses_earned_count > 0 else 0
         bonuses_earned_percent = 0
@@ -50,7 +55,7 @@ class DashboardData(APIView):
             bonuses_earned_percent = (
                 (this_month_bonuses_earned - last_month_bonuses_earned) / last_month_bonuses_earned) * 100
 
-        bonuses_spent = get_bonuses_spent()
+        bonuses_spent = get_bonuses_spent(org_id)
         bonuses_spent_count = bonuses_spent.count()
         this_month_bonuses_spent = bonuses_spent.last().get('total', 0) if bonuses_spent_count > 0 else 0
         bonuses_spent_percent = 0

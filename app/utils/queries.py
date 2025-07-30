@@ -11,7 +11,7 @@ from app.models import Car
 from app.utils import PLATE_NUMBER_TEMPLATE
 from django.db import connection
 
-def get_year_sales():
+def get_year_sales(org_id):
     today = date.today()
     # Находим первый день текущего месяца
     start_of_current_month = today.replace(day=1)
@@ -27,7 +27,7 @@ def get_year_sales():
     # Пример запроса к модели Sale (поменяйте под свои поля/модель):
     queryset = (
         FuelSale.objects
-        .filter(date__gte=start_date, date__lte=end_of_current_month)
+        .filter(organization_id=org_id, date__gte=start_date, date__lte=end_of_current_month)
         .annotate(month=TruncMonth('date'))
         .values('month')
         .annotate(total=Sum('total_amount'))
@@ -103,7 +103,7 @@ def get_customer_share():
         }
 
 
-def get_bonuses_earned():
+def get_bonuses_earned(org_id):
     today = date.today()
     # Находим первый день текущего месяца
     start_of_current_month = today.replace(day=1)
@@ -116,7 +116,7 @@ def get_bonuses_earned():
 
     queryset = (
         LoyaltyPointsTransaction.objects
-        .filter(created_at__gte=start_date, created_at__lte=end_of_current_month, transaction_type='accrual')
+        .filter(organization_id=org_id, created_at__gte=start_date, created_at__lte=end_of_current_month, transaction_type='accrual')
         .annotate(month=TruncMonth('created_at'))
         .values('month')
         .annotate(total=Sum('points'))
@@ -126,7 +126,7 @@ def get_bonuses_earned():
     return queryset
 
 
-def get_bonuses_spent():
+def get_bonuses_spent(org_id):
     today = date.today()
     # Находим первый день текущего месяца
     start_of_current_month = today.replace(day=1)
@@ -139,7 +139,7 @@ def get_bonuses_spent():
 
     queryset = (
         LoyaltyPointsTransaction.objects
-        .filter(created_at__gte=start_date, created_at__lte=end_of_current_month, transaction_type='redeem')
+        .filter(organization_id=org_id, created_at__gte=start_date, created_at__lte=end_of_current_month, transaction_type='redeem')
         .annotate(month=TruncMonth('created_at'))
         .values('month')
         .annotate(total=Sum('points'))

@@ -10,6 +10,11 @@ from django.db.models import Q
 def get_bonuses_spent(request):
     start_datetime = request.GET.get('startdatetime')
     end_datetime = request.GET.get('enddatetime')
+    org_id = request.GET.get('org_id')
+
+    #TODO should check permissions for org_id
+    if not org_id:
+        return JsonResponse({'error': 'org_id is required'}, status=400)
 
     if not start_datetime or not end_datetime:
         return JsonResponse({'error': 'startdatetime and enddatetime are required'}, status=400)
@@ -26,6 +31,7 @@ def get_bonuses_spent(request):
         (   Q(fuel_sale__date__range=(start_datetime, end_datetime)) |
             (Q(fuel_sale=None) & Q(created_at__range=(start_datetime, end_datetime)))   
         ),
+        organization_id=int(org_id),
         transaction_type='redeem'
     )
 
