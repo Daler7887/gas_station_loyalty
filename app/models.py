@@ -104,6 +104,9 @@ class FuelSale(models.Model):
         self.discount_amount = 0
         super().save(*args, **kwargs)
 
+        if not self.organization.loyalty_program:
+            return
+
         if not self.plate_number or not re.match(PLATE_NUMBER_TEMPLATE, self.plate_number):
             return  # Если нет распознавания номера или номер соответствует шаблону, выходим
 
@@ -249,3 +252,16 @@ class SMBServer(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.server_ip})"
+
+
+from django.contrib.auth.models import User
+
+
+class OrganizationAccess(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organization_accesses')
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'organization')
+
+

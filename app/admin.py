@@ -4,6 +4,7 @@ from app.utils import PLATE_NUMBER_TEMPLATE  # import the regex template
 from app.resources import FuelSaleResource
 from rangefilter.filters import DateTimeRangeFilter
 from import_export.admin import ImportExportModelAdmin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
 # Register your models here.
 class InvalidPlateRecognitionFilter(admin.SimpleListFilter):
@@ -157,3 +158,17 @@ class SMBServerAdmin(admin.ModelAdmin):
     list_display = ("name", "server_ip", "share_name", "active")
     list_filter = ("active",)
     search_fields = ("name", "server_ip", "share_name")
+
+
+class OrganizationAccessInline(admin.TabularInline):
+    model = OrganizationAccess
+    extra = 0
+
+
+class CustomUserAdmin(BaseUserAdmin):
+    inlines = [OrganizationAccessInline]
+
+
+admin.site.register(OrganizationAccess)
+admin.site.unregister(User)
+admin.site.register(User, CustomUserAdmin)

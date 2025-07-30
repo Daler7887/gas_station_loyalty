@@ -95,3 +95,21 @@ class UserInfoView(APIView):
         user = request.user
         serializer = UserSerializer(user)
         return Response(serializer.data)
+
+
+class AvailableOrganizationsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        if user.is_superuser:
+            orgs = Organization.objects.all()
+        else:
+            orgs = Organization.objects.filter(
+                id__in=OrganizationAccess.objects.filter(user=user).values_list('organization_id', flat=True)
+            )
+
+        data = [{"id": str(org.id), "name": org.name, "logo": "/assets/icons/workspaces/logo-1.webp", "plan": "metan"} for org in orgs]
+
+        return Response(data)

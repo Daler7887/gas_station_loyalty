@@ -172,11 +172,11 @@ def get_logs(user):
 
 
 @database_sync_to_async
-def aget_pump_info():
-    return get_pump_info()
+def aget_pump_info(org_id):
+    return get_pump_info(org_id)
 
 
-def get_pump_info():
+def get_pump_info(org_id):
     # Get pumps with last plate recognition (subquery)
     last_plate_recognition_qs = PlateRecognition.objects.filter(
         pump=OuterRef('pk'),
@@ -190,7 +190,7 @@ def get_pump_info():
         date__gt=datetime.now() - timedelta(minutes=5)
     ).order_by('-date')
 
-    pumps_qs = Pump.objects.filter(organization__id=1).annotate(
+    pumps_qs = Pump.objects.filter(organization__id=org_id).annotate(
         last_plate_recognition_id=Subquery(
             last_plate_recognition_qs.values('id')[:1]),
         last_plate_recognized_at=Subquery(

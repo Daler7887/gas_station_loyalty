@@ -10,7 +10,7 @@ from app.views import (
     main,
     plate_recog
 )
-from .views.main import DashboardData, UserInfoView
+from .views.main import DashboardData, UserInfoView, AvailableOrganizationsView
 from app.views.bot_users import BotUserListView
 from app.views.fuel_sales import FuelSaleListView
 from app.views.bonus import get_bonuses_spent
@@ -32,4 +32,5 @@ urlpatterns = [
     path('api/bot-users/', BotUserListView.as_view(), name='bot-users'),
     path('api/fuel-sales/', FuelSaleListView.as_view(), name='fuel-sales'),
     path('api/bonuses-spent/', get_bonuses_spent, name='get_bonuses_spent'),
+    path('api/organizations/', AvailableOrganizationsView.as_view()),
 ]

@@ -35,10 +35,11 @@ def loyalty_points_transaction_deleted(sender, instance, **kwargs):
 @receiver(post_save, sender=FuelSale)
 def update_fuel_sale_info(sender, instance, created, **kwargs):
     if not created:
+        org_id = instance.organization_id
         channel_layer = get_channel_layer()
-        pump_info = get_pump_info()
+        pump_info = get_pump_info(org_id)
         async_to_sync(channel_layer.group_send)(
-            'pumps_group',
+            f'pumps_org_{org_id}',
             {
                 'type': 'pump_message',
                 'pumps': pump_info
@@ -53,10 +54,11 @@ def update_pump_info(sender, instance, created, **kwargs):
     """
     # Отправляем информацию о новой записи в группу WebSocket
 
+    org_id = instance.organization.id
     channel_layer = get_channel_layer()
-    pump_info = get_pump_info()
+    pump_info = get_pump_info(org_id)
     async_to_sync(channel_layer.group_send)(
-        'pumps_group',
+        f'pumps_org_{org_id}',
         {
             'type': 'pump_message',
             'pumps': pump_info
