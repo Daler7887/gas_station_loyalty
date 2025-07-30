@@ -27,7 +27,7 @@ async def receive_suggestions(update: Update, context: ContextTypes.DEFAULT_TYPE
     message_id = update.message.message_id
     obj = await get_object_by_user_id(user_id=update.message.chat.id)
 
-    text = f"{text}\n\nОтзыв от @{update.message.from_user.username}:\nНомер телефона: {obj.phone}\nНомер машины: {obj.car.plate_number if obj.car else 'Не указано'}"
+    text = f"{text}\n\nОтзыв от @{update.message.from_user.username}:\nНомер телефона: {obj.phone}"
     if not update.message.photo and not update.message.video and not update.message.document:
         forwarded_message = await context.bot.send_message(
             chat_id=TG_GROUP_ID,
