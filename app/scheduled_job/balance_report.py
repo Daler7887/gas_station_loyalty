@@ -1,7 +1,8 @@
 from datetime import datetime, time, timedelta
 import matplotlib.pyplot as plt
 import pandas as pd
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Value as V
+from django.db.models.functions import Coalesce
 from app.models import LoyaltyPointsTransaction, Organization
 from telegram import Bot
 from asgiref.sync import async_to_sync
@@ -13,89 +14,121 @@ def format_number(x):
     return f"{x:,}".replace(",", " ") if isinstance(x, (int, float)) else x
 
 
-def generate_balance_report(report_date: datetime, output_path="bonus_report.jpg"):
+def generate_balance_report(report_date: datetime, output_path: str = "bonus_report.jpg"):
+    """Свод начислений/списаний бонусов по организациям за выбранную дату."""
+
+    # ——— Границы суток ————————————————————————————————
     start_day = datetime.combine(report_date.date(), time.min)
-    mid_day = datetime.combine(report_date.date(), time(12, 0))
-    end_day = datetime.combine(report_date.date(), time.max)
+    mid_day   = datetime.combine(report_date.date(), time(12, 0))
+    end_day   = datetime.combine(report_date.date(), time.max)
 
-    # Баланс на начало
+    # ——— Остаток на начало дня ————————————————————————————
     initial = LoyaltyPointsTransaction.objects.filter(created_at__lt=start_day).aggregate(
-        accrued=Sum('points', filter=Q(transaction_type='accrual')),
-        redeemed=Sum('points', filter=Q(transaction_type='redeem')),
+        accrued = Sum('points', filter=Q(transaction_type='accrual')),
+        redeemed = Sum('points', filter=Q(transaction_type='redeem')),
     )
-    start_balance = (initial['accrued'] or 0) - (initial['redeemed'] or 0)
+    opening_balance = (initial['accrued'] or 0) - (initial['redeemed'] or 0)
 
-    # Получаем все организации
-    orgs = LoyaltyPointsTransaction.objects.values_list('organization_id', flat=True).distinct()
+    # ——— Агрегации по организациям за оба полу-дня (один запрос) ——
+    org_qs = (
+        Organization.objects
+        .annotate(
+            # Утро
+            morn_accr = Coalesce(
+                Sum(
+                    'loyaltypointstransaction__points',
+                    filter=Q(
+                        loyaltypointstransaction__created_at__gte=start_day,
+                        loyaltypointstransaction__created_at__lt=mid_day,
+                        loyaltypointstransaction__transaction_type='accrual'
+                    )
+                ), V(0)
+            ),
+            morn_redm = Coalesce(
+                Sum(
+                    'loyaltypointstransaction__points',
+                    filter=Q(
+                        loyaltypointstransaction__created_at__gte=start_day,
+                        loyaltypointstransaction__created_at__lt=mid_day,
+                        loyaltypointstransaction__transaction_type='redeem'
+                    )
+                ), V(0)
+            ),
+            # Вечер
+            eve_accr = Coalesce(
+                Sum(
+                    'loyaltypointstransaction__points',
+                    filter=Q(
+                        loyaltypointstransaction__created_at__gte=mid_day,
+                        loyaltypointstransaction__created_at__lte=end_day,
+                        loyaltypointstransaction__transaction_type='accrual'
+                    )
+                ), V(0)
+            ),
+            eve_redm = Coalesce(
+                Sum(
+                    'loyaltypointstransaction__points',
+                    filter=Q(
+                        loyaltypointstransaction__created_at__gte=mid_day,
+                        loyaltypointstransaction__created_at__lte=end_day,
+                        loyaltypointstransaction__transaction_type='redeem'
+                    )
+                ), V(0)
+            ),
+        )
+        .order_by('name')     # чтобы столбцы были в стабильном порядке
+    )
 
-    def get_period_data(start, end):
-        """Возвращает словарь вида {org_id: {'accrual': X, 'redeem': Y}}"""
-        qs = LoyaltyPointsTransaction.objects.filter(created_at__gte=start, created_at__lt=end)
-        data = {}
-        for org_id in orgs:
-            accrued = qs.filter(transaction_type='accrual', organization_id=org_id).aggregate(total=Sum('points'))['total'] or 0
-            redeemed = qs.filter(transaction_type='redeem', organization_id=org_id).aggregate(total=Sum('points'))['total'] or 0
-            data[org_id] = {'accrual': accrued, 'redeem': redeemed}
-        return data
+    # ——— Суммы по периодам (сразу считаем итоги) ——————————
+    total_morn_accr = sum(org.morn_accr for org in org_qs)
+    total_morn_redm = sum(org.morn_redm for org in org_qs)
+    total_eve_accr  = sum(org.eve_accr  for org in org_qs)
+    total_eve_redm  = sum(org.eve_redm  for org in org_qs)
 
-    morning_data = get_period_data(start_day, mid_day)
-    evening_data = get_period_data(mid_day, end_day)
+    mid_balance  = opening_balance + total_morn_accr - total_morn_redm
+    closing_balance = mid_balance + total_eve_accr - total_eve_redm
 
-    # Итого по движениям
-    total_data = {}
-    for org_id in orgs:
-        total_data[org_id] = {
-            'accrual': morning_data.get(org_id, {}).get('accrual', 0) + evening_data.get(org_id, {}).get('accrual', 0),
-            'redeem': morning_data.get(org_id, {}).get('redeem', 0) + evening_data.get(org_id, {}).get('redeem', 0)
-        }
+    # ——— Формируем строки ————————————————————————————————
+    columns = (
+        ["Период", "Начальный\nбаланс"] +
+        [f"Начислено\n({org.name})" for org in org_qs] +
+        [f"Списано\n({org.name})"   for org in org_qs] +
+        ["Конечный\nбаланс"]
+    )
 
-    # Итоговый баланс
-    total_accrued = sum(v['accrual'] for v in total_data.values())
-    total_redeemed = sum(v['redeem'] for v in total_data.values())
-    end_balance = start_balance + total_accrued - total_redeemed
+    # ── собираем значения по-отдельности, а не одной «простынёй»
+    morn_accr   = [org.morn_accr for org in org_qs]
+    eve_accr    = [org.eve_accr  for org in org_qs]
+    morn_redm   = [org.morn_redm for org in org_qs]
+    eve_redm    = [org.eve_redm  for org in org_qs]
 
-    # Формируем таблицу
-    columns = ["Период", "Остаток на начало"]
-    for org_id in orgs:
-        columns.append(f"Начислено ({org_id})")
-        columns.append(f"Списано ({org_id})")
-    columns.append("Остаток на конец")
+    total_accr_per_org = [m + e for m, e in zip(morn_accr, eve_accr)]
+    total_redm_per_org = [m + e for m, e in zip(morn_redm, eve_redm)]
 
-    def build_row(label, period_data, starting_balance, ending_balance):
-        row = [label, starting_balance]
-        for org_id in orgs:
-            row.append(period_data.get(org_id, {}).get('accrual', 0))
-            row.append(period_data.get(org_id, {}).get('redeem', 0))
-        row.append(ending_balance)
-        return row
+    row_morning = (["00:00–11:59", opening_balance] + morn_accr + morn_redm + [mid_balance])
+    row_evening = (["12:00–23:59", mid_balance]      + eve_accr  + eve_redm  + [closing_balance])
+    row_total   = (["Итого",       opening_balance]  + total_accr_per_org + total_redm_per_org + [closing_balance])
 
-    mid_balance = start_balance + sum(v['accrual'] - v['redeem'] for v in morning_data.values())
-    rows = [
-        build_row("00.00 - 11.59", morning_data, start_balance, mid_balance),
-        build_row("12.00 - 23.59", evening_data, mid_balance, end_balance),
-    ]
+    data = [row_morning, row_evening, row_total]
+    df = pd.DataFrame(data, columns=columns)
 
-    # Строка Итого
-    rows.append(build_row("Итого", total_data, start_balance, end_balance))
+    formatted_df = df.applymap(format_number)
 
-    df = pd.DataFrame(rows, columns=columns)
-    formatted_df = df.applymap(format_number)  # Применить форматирование, если нужно
-
-    # Визуализация
-    fig, ax = plt.subplots(figsize=(len(columns) * 1.1, 3))
+    # Генерация изображения
+    fig, ax = plt.subplots(figsize=(10, 3))
     ax.axis('off')
     table = ax.table(cellText=formatted_df.values, colLabels=columns, cellLoc='center', loc='center')
     table.auto_set_font_size(False)
-    table.set_fontsize(9)
+    table.set_fontsize(10)
     table.scale(1, 2)
 
-    # Выделение итогов
+    # Выделяю последнюю строку
     last_row_idx = len(df) - 1
     for col_idx in range(len(columns)):
-        cell = table[last_row_idx + 1, col_idx]  # +1 из-за заголовка
+        cell = table[last_row_idx + 1, col_idx]  # +1 — из-за заголовка
         cell.set_fontsize(10)
-        cell.set_text_props(weight='bold')
-        cell.set_facecolor('#f0f0f0')
+        cell.set_text_props(weight='bold')       # жирный шрифт
+        cell.set_facecolor('#f0f0f0')            # светло-серый фон
 
     plt.savefig(output_path, bbox_inches='tight', dpi=300)
     plt.close()
