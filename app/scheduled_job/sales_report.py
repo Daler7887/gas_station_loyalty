@@ -6,7 +6,7 @@ from asgiref.sync import async_to_sync
 import os
 from config import REPORT_BOT_TOKEN, REPORT_CHAT_ID
 from django.db.models import Sum, Avg, Q
-from app.models import FuelSale, Car, LoyaltyPointsTransaction
+from app.models import FuelSale, Car, LoyaltyPointsTransaction, Organization
 from app.utils import PLATE_NUMBER_TEMPLATE 
 from decimal import Decimal
 
@@ -17,13 +17,13 @@ def format_value(x):
     return x
 
 
-def generate_sales_report(report_date: datetime, output_path="sales_report.jpg"):
+def generate_sales_report(report_date: datetime, org_id, output_path="sales_report.jpg"):
     # Calculate date range for yesterday
     start_date = datetime.combine(report_date.date(), datetime.min.time())
     end_date = datetime.combine(report_date.date(), datetime.max.time())
 
     # total sales quantity
-    total_quantity = FuelSale.objects.filter(date__range=(start_date, end_date)).aggregate(Sum('quantity'))['quantity__sum'] or 0
+    total_quantity = FuelSale.objects.filter(organization_id=org_id, date__range=(start_date, end_date)).aggregate(Sum('quantity'))['quantity__sum'] or 0
 
     # blacklist quantity
     blacklist_cars = FuelSale.objects.filter(
@@ -33,10 +33,12 @@ def generate_sales_report(report_date: datetime, output_path="sales_report.jpg")
 
     # invalid plates quantity
     null_plate_quantity = FuelSale.objects.filter(
+        organization_id=org_id,
         date__range=(start_date, end_date),
         plate_recognition__isnull=True
     ).aggregate(Sum('quantity'))['quantity__sum'] or 0
     invalid_plate_quantity = FuelSale.objects.filter(
+        organization_id=org_id,
         date__range=(start_date, end_date),
         plate_recognition__isnull=False
     ).exclude(
@@ -44,12 +46,12 @@ def generate_sales_report(report_date: datetime, output_path="sales_report.jpg")
     ).aggregate(Sum('quantity'))['quantity__sum'] or 0
     total_invalid_plate_quantity = null_plate_quantity + invalid_plate_quantity
 
-    price = FuelSale.objects.filter(date__range=(start_date, end_date)).aggregate(Avg('price'))['price__avg'] or 0
+    price = FuelSale.objects.filter(organization_id=org_id, date__range=(start_date, end_date)).aggregate(Avg('price'))['price__avg'] or 0
     if price == 0:
         print("Нет продаж за указанный период или цена равна нулю.")
         return
     
-    discount = FuelSale.objects.filter(date__range=(start_date, end_date), discount_amount__gt=0).aggregate(Sum('quantity'), Sum('discount_amount'))
+    discount = FuelSale.objects.filter(organization_id=org_id, date__range=(start_date, end_date), discount_amount__gt=0).aggregate(Sum('quantity'), Sum('discount_amount'))
     discount_quantity = discount['quantity__sum'] or 0
     discount_amount = discount['discount_amount__sum'] or 0
 
@@ -61,6 +63,7 @@ def generate_sales_report(report_date: datetime, output_path="sales_report.jpg")
             Q(fuel_sale__date__range=(start_date, end_date)) |
             (Q(fuel_sale=None) & Q(created_at__range=(start_date, end_date)))
         ),
+        organization_id=org_id,
         transaction_type='accrual'
     ).aggregate(Sum('points'))['points__sum'] or 0
 
@@ -105,22 +108,26 @@ def send_sales_report():
     """
     Генерирует отчет о продажах и отправляет его в Telegram.
     """
-    if not REPORT_BOT_TOKEN or not REPORT_CHAT_ID:
-        print("Отсутствуют токен бота или ID чата для отправки отчета.")
+    if not REPORT_BOT_TOKEN:
+        print("Отсутствуют токен бота")
         return
 
     report_date = datetime.now() - timedelta(days=1)  # Отчет за вчера
-    output_path = "sales_report.jpg"  # Путь к файлу для сохранения отчета
-    generate_sales_report(report_date, output_path)
-    
-    # Отправка отчета в Telegram
-    async_to_sync(send_telegram_report)(
-        image_path=output_path, 
-        bot_token=REPORT_BOT_TOKEN, 
-        chat_id=REPORT_CHAT_ID,
-        caption=f"📊 Отчет по детальным продажам и бонусам за {report_date.strftime('%d.%m.%Y')}"
-    )
+    for org in Organization.objects.all():
+        if org.report_chat_id is None:
+            print(f"Отсутствует chat_id для организации {org.name}.")
+            continue
+        output_path = f"sales_report_{org.id}.jpg"  # Путь к файлу для сохранения отчета
+        generate_sales_report(report_date, org.id, output_path)
+        
+        # Отправка отчета в Telegram
+        async_to_sync(send_telegram_report)(
+            image_path=output_path, 
+            bot_token=REPORT_BOT_TOKEN, 
+            chat_id=org.report_chat_id,
+            caption=f"📊 Отчет по детальным продажам и бонусам {org.name} за {report_date.strftime('%d.%m.%Y')}"
+        )
 
-    # Удаление файла после отправки
-    if os.path.exists(output_path):
-        os.remove(output_path)
+        # Удаление файла после отправки
+        if os.path.exists(output_path):
+            os.remove(output_path)

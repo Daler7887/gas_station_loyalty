@@ -5,7 +5,7 @@ from telegram import Bot
 from asgiref.sync import async_to_sync
 import os
 from app.utils.queries import get_fuel_sales_breakdown_by_pump
-from app.models import Car
+from app.models import Car, Organization
 from django.db.models import Q
 from app.utils import PLATE_NUMBER_TEMPLATE
 from config import REPORT_BOT_TOKEN, REPORT_CHAT_ID
@@ -17,12 +17,12 @@ def format_value(x):
     return x
 
 
-def generate_promotion_report(report_date: datetime, output_path="promotion_report.jpg"):
+def generate_promotion_report(report_date: datetime, org_id, output_path="promotion_report.jpg"):
     # Calculate date range for yesterday
     start_date = datetime.combine(report_date.date(), datetime.min.time())
     end_date = datetime.combine(report_date.date(), datetime.max.time())
     # Fetch pump sales data
-    pump_sales_data = get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date)
+    pump_sales_data = get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date, org_id)
     # Prepare table data
     columns = [
         "Колонка", 
@@ -111,22 +111,26 @@ def send_promotion_report():
     """
     Генерирует отчет о продвижении и отправляет его в Telegram.
     """
-    if not REPORT_BOT_TOKEN or not REPORT_CHAT_ID:
-        print("Отсутствуют токен бота или ID чата для отправки отчета.")
+    if not REPORT_BOT_TOKEN:
+        print("Отсутствуют токен бота")
         return
 
     report_date = datetime.now() - timedelta(days=1)  # Отчет за вчера
-    output_path = "promotion_report.jpg"  # Путь к файлу для сохранения отчета
-    generate_promotion_report(report_date, output_path)
+    for org in Organization.objects.all():
+        if org.report_chat_id is None:
+            print(f"Отсутствует chat_id для организации {org.name}.")
+            continue 
+        output_path = f"promotion_report_{org.id}.jpg"  # Путь к файлу для сохранения отчета
+        generate_promotion_report(report_date, org.id, output_path)
 
-    # Отправка отчета в Telegram
-    async_to_sync(send_telegram_report)(
-        image_path=output_path,
-        bot_token=REPORT_BOT_TOKEN,
-        chat_id=REPORT_CHAT_ID,
-        caption=f"📊 Отчет по продвижению за {report_date.strftime('%d.%m.%Y')}"
-    )
+        # Отправка отчета в Telegram
+        async_to_sync(send_telegram_report)(
+            image_path=output_path,
+            bot_token=REPORT_BOT_TOKEN,
+            chat_id=org.report_chat_id,
+            caption=f"📊 Отчет по продвижению {org.name} за {report_date.strftime('%d.%m.%Y')}"
+        )
 
-    # Удаление файла после отправки
-    if os.path.exists(output_path):
-        os.remove(output_path)
+        # Удаление файла после отправки
+        if os.path.exists(output_path):
+            os.remove(output_path)

@@ -58,7 +58,7 @@ def fill_plate_numbers(modeladmin, request, queryset):
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'server', 'log_path', 'loyalty_program')
+    list_display = ('name', 'server', 'log_path', 'loyalty_program', 'report_chat_id')
 
 
 @admin.action(description='Resave fuel sales with filters')

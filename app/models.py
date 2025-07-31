@@ -27,6 +27,8 @@ class Organization(models.Model):
         null=True, blank=True, verbose_name="Начало периода списания баллов")
     redeem_end_time = models.TimeField(
         null=True, blank=True, verbose_name="Конец периода списания баллов")
+    report_chat_id = models.CharField(
+        max_length=255, null=True, blank=True, verbose_name="Chat ID для отчетов")
 
     class Meta:
         verbose_name = 'Организация'

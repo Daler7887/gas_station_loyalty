@@ -263,7 +263,7 @@ def get_pump_info(org_id):
     return pump_info
 
 
-def get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date):
+def get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date, org_id):
     query = """
         WITH registered AS (
             SELECT plate_number
@@ -310,6 +310,7 @@ def get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date):
         FROM app_fuelsale f
         JOIN app_pump p ON p.id = f.pump_id
         WHERE f.date BETWEEN %s AND %s
+          AND f.organization_id = %s
         GROUP BY p.number
     """
 
@@ -319,6 +320,7 @@ def get_fuel_sales_breakdown_by_pump(start_date, end_date, report_date):
                 report_date.date(),
                 start_date, end_date,
                 start_date, end_date,
+                org_id,
             ])
             rows = cursor.fetchall()
             if not rows:
