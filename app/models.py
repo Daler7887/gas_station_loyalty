@@ -106,15 +106,15 @@ class FuelSale(models.Model):
         self.discount_amount = 0
         super().save(*args, **kwargs)
 
-        if not self.organization.loyalty_program:
-            return
-
         if not self.plate_number or not re.match(PLATE_NUMBER_TEMPLATE, self.plate_number):
             return  # Если нет распознавания номера или номер соответствует шаблону, выходим
 
         car, _ = Car.objects.get_or_create(
                 plate_number=self.plate_number, defaults={'loyalty_points': 0, 'is_blacklisted': False})
         car.refresh_from_db() 
+
+        if not self.organization.loyalty_program:
+            return
 
         if car.is_blacklisted:
             # Если автомобиль в черном списке, не начисляем баллы

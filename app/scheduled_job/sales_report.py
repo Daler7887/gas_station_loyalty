@@ -27,6 +27,7 @@ def generate_sales_report(report_date: datetime, org_id, output_path="sales_repo
 
     # blacklist quantity
     blacklist_cars = FuelSale.objects.filter(
+        organization_id=org_id,
         date__range=(start_date, end_date),
         plate_number__in=Car.objects.filter(is_blacklisted=True).values_list('plate_number', flat=True)
     ).aggregate(Sum('quantity'))['quantity__sum'] or 0
