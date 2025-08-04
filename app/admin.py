@@ -128,10 +128,10 @@ def resave_loyalty_points_with_filters(modeladmin, request, queryset):
 class LoyaltyPointsTransactionAdmin(ImportExportModelAdmin):
     list_display = ('organization', 'created_at', 'transaction_type', 'car', 'points',
                     'description', 'created_by')
-    list_filter = (('created_at', DateTimeRangeFilter),'transaction_type', 'created_by')
+    list_filter = (('created_at', DateTimeRangeFilter),'transaction_type', 'created_by', 'organization')
     search_fields = ['car__plate_number', 'description']
     readonly_fields = ('created_by',)
-    actions = [delete_all_loyalty_points, resave_loyalty_points_with_filters]
+    actions = [resave_loyalty_points_with_filters]
 
     raw_id_fields = ('fuel_sale', 'car')
     list_select_related = ('fuel_sale', 'car')

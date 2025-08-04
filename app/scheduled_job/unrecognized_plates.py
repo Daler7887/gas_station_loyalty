@@ -15,11 +15,14 @@ def resolve_unrecognized_plates():
             if sale.total_amount < 2000:
                 continue
             print(f"Обрабатываем sale {sale.id} от {sale.date} колонка {sale.pump.number}")
-            plate_recog = PlateRecognition.objects.filter(pump=sale.pump, recognized_at__gte=sale.date-timedelta(minutes=15), recognized_at__lte=sale.date+timedelta(minutes=1),is_processed=False, number__regex=PLATE_NUMBER_TEMPLATE).order_by('-recognized_at').first()
+            last_sale = FuelSale.objects.filter(pump=sale.pump, date__lte=sale.date).order_by('-date').first()
+            last_sale_time = last_sale.date if last_sale else sale.date - timedelta(minutes=30)
+            plate_recognition_time_gte = max(last_sale_time, sale.date-timedelta(minutes=30))
+            plate_recog = PlateRecognition.objects.filter(pump=sale.pump, recognized_at__gte=plate_recognition_time_gte, recognized_at__lte=sale.date+timedelta(minutes=1),is_processed=False, number__regex=PLATE_NUMBER_TEMPLATE).order_by('-recognized_at').first()
 
             # Если нет подходящих по шаблону, берём последний
             if plate_recog is None:
-                plate_recog = PlateRecognition.objects.filter(pump=sale.pump, recognized_at__gte=sale.date-timedelta(minutes=15), recognized_at__lte=sale.date+timedelta(minutes=1), is_processed=False).order_by('-recognized_at').first()
+                plate_recog = PlateRecognition.objects.filter(pump=sale.pump, recognized_at__gte=sale.date-timedelta(minutes=30), recognized_at__lte=sale.date+timedelta(minutes=1), is_processed=False).order_by('-recognized_at').first()
 
             # Если нет последнего, берём предыдущую продажу
             if plate_recog is None and sale.date.date() == datetime.now().date():
