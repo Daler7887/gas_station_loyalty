@@ -143,7 +143,8 @@ def process_fuel_sales_log():
                     org.save()
 
                 if plate_number is not None and re.match(plate_templates, plate_number):
-                    if not Bot_user.objects.filter(car__plate_number=plate_number).exists():
+                    car = Car.objects.filter(plate_number=plate_number).first()
+                    if car and not car.is_blacklisted and not Bot_user.objects.filter(car=car).exists():
                         try:
                             send_sales_info_to_tg(new_log)
                         except Exception as e:
