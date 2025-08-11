@@ -114,7 +114,7 @@ def process_fuel_sales_log():
                     plate_number = plate_recog.number if plate_recog else None
 
                     new_client = not Car.objects.filter(
-                        plate_number=plate_number, created_at__lte=timestamp-timedelta(minutes=30)).exists() if plate_number is not None and re.match(plate_templates, plate_number) else False
+                        plate_number=plate_number).exists() if plate_number is not None and re.match(plate_templates, plate_number) else False
                 else:
                     plate_recog = None
                     plate_number = None
