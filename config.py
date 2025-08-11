@@ -22,6 +22,7 @@ DB_PASSWORD = os.environ.get("DB_PASSWORD")
 BOT_API_TOKEN = os.environ.get("BOT_API_TOKEN")
 WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 TG_GROUP_ID = os.environ.get("TG_GROUP_ID")
+UNREGISTERED_USER_CHAT_ID = os.environ.get("UNREGISTERED_USER_CHAT_ID")
 
 # OpenAI
 OPENAI_API_TOKEN = os.environ.get("OPENAI_API_TOKEN")

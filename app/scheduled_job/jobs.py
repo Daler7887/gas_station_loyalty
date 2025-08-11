@@ -2,12 +2,13 @@ from datetime import datetime, timedelta
 from app.models import FuelSale, Organization, Pump, PlateRecognition, Car
 from django.db import transaction
 from bot.utils.bot_functions import *
-from config import TG_GROUP_ID
+from config import UNREGISTERED_USER_CHAT_ID
 from bot.utils import bot
 from app.utils.smb_utils import read_file
 from app.utils.hikvision import get_parking_plate_number
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.utils import PLATE_NUMBER_TEMPLATE as plate_templates
+from bot.models import Bot_user
 import requests
 import logging
 import os
@@ -113,7 +114,7 @@ def process_fuel_sales_log():
                     plate_number = plate_recog.number if plate_recog else None
 
                     new_client = not Car.objects.filter(
-                        plate_number=plate_number).exists() if plate_number is not None and re.match(plate_templates, plate_number) else False
+                        plate_number=plate_number, created_at__lte=timestamp-timedelta(minutes=30)).exists() if plate_number is not None and re.match(plate_templates, plate_number) else False
                 else:
                     plate_recog = None
                     plate_number = None
@@ -141,9 +142,12 @@ def process_fuel_sales_log():
                     org.last_processed_timestamp = timestamp
                     org.save()
 
-                # if plate_number is not None and re.match(plate_templates, plate_number):
-                    # pass
-                    # send_sales_info_to_tg(new_log)
+                if plate_number is not None and re.match(plate_templates, plate_number):
+                    if not Bot_user.objects.filter(car__plate_number=plate_number).exists():
+                        try:
+                            send_sales_info_to_tg(new_log)
+                        except Exception as e:
+                            logger.error(f"Ошибка при отправке сообщения в Telegram: {e}")
 
         except FileNotFoundError as e:
             logger.info(f'Ошибка при чтении файла: {e}')
@@ -157,7 +161,7 @@ def send_sales_info_to_tg(new_log):
     photo_path = new_log.plate_recognition.image2
 
     message_text = fr'''
-      <b>⛽ Продажа топлива</b>
+      <b>Незарегистрирован пользователь</b>
 
 📅 Дата: {new_log.date.strftime('%d.%m.%Y')}
 ⏰ Время: {new_log.date.strftime('%H:%M:%S')}
@@ -171,7 +175,7 @@ def send_sales_info_to_tg(new_log):
 💰 Общая сумма: <b>{new_log.total_amount}</b> сум '''
 
     url = f"https://api.telegram.org/bot{bot.token}/sendPhoto"
-    payload = {'chat_id': TG_GROUP_ID,
+    payload = {'chat_id': UNREGISTERED_USER_CHAT_ID,  # TG_GROUP_ID
                'caption': message_text, 'parse_mode': 'HTML'}
 
     response = requests.post(url, data=payload, files={'photo': photo_path})
