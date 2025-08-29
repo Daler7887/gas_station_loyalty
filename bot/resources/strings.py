@@ -215,4 +215,16 @@ Bizni tanlaganingiz uchun rahmat! 🚗💨",
         "Спасибо, что вы с нами!\n"
         "<b>Телефон доверия:</b> <a href=\"tel:+998979290209\">+998 97 929 02 09</a>",
     ],
+    "something went wrong, try again later": [
+        "Nimadir noto'g'ri ketdi, iltimos, keyinroq qayta urinib ko'ring.",
+        "Что-то пошло не так, пожалуйста, попробуйте позже."
+    ],
+    "something went wrong, send /start and try again": [
+        "Nimadir noto'g'ri ketdi, iltimos, /start yuboring va qayta urinib ko'ring.",
+        "Что-то пошло не так, пожалуйста, отправьте /start и попробуйте снова."
+    ],
+    "thanks for answer, wait for response": [
+        "Javob uchun rahmat, tez orada siz bilan bog'lanamiz.",
+        "Спасибо за ответ, мы свяжемся с вами в ближайшее время."
+    ]
 }

@@ -132,9 +132,12 @@ suggestions_handler = ConversationHandler(
 
 feedback_handler_answer = MessageHandler(filters.ALL & filters.ChatType.GROUPS & ~filters.COMMAND, suggestions.handle_feedback_response)
 
+fallback_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, main.handle_fallback)
+
 handlers = [
     CallbackQueryHandler(
         main.handle_callback_query, pattern=r"^bonus_"),
+    fallback_handler,
     login_handler,
     settings_handler,  # Добавляем обработчик для меню настроек
     change_lang_handler,  # Добавляем обработчик для смены языка

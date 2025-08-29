@@ -3,6 +3,7 @@ from asgiref.sync import sync_to_async, async_to_sync
 from app.models import Car, PlateRecognition
 from bot.utils.clients import validate_plate_number
 from telegram.ext import CallbackContext
+from config import TG_GROUP_ID
 
 FEEDBACK_CHANNEL_ID = -1002144060952
 
@@ -187,3 +188,59 @@ async def handle_callback_query(update, context: CallbackContext):
             await query.answer(await get_word('success', query))
             await query.message.edit_text(query.message.text + "\n\n" + await get_word("use bonus", query) + " ✅")
         
+
+async def handle_fallback(update, context):
+    message = update.message
+    is_reply_to_admin = False
+    if message.reply_to_message and message.reply_to_message.from_user.id == context.bot.id:
+        admin_msg = ''
+        if update.message.reply_to_message.text:
+            admin_msg = update.message.reply_to_message.text
+        if update.message.reply_to_message.caption:
+            admin_msg = update.message.reply_to_message.caption
+        is_reply_to_admin = admin_msg.startswith("📢 **Ответ от Команды Поддержки** 📢")
+
+    if is_reply_to_admin:    
+        try:
+            text = ''
+            if update.message.text:
+                text = update.message.text
+            if update.message.caption:
+                text = update.message.caption
+            message_id = update.message.message_id
+            obj = await get_object_by_user_id(user_id=update.message.chat.id)
+
+            text = f"{text}\n\nОтзыв от @{update.message.from_user.username}:\nНомер телефона: {obj.phone}\nНомер автомобиля: {obj.car.plate_number if obj.car else 'Не указано'}"
+            if not update.message.photo and not update.message.video and not update.message.document:
+                forwarded_message = await context.bot.send_message(
+                    chat_id=TG_GROUP_ID,
+                    text=text
+                )
+            else:
+                if update.message.photo:
+                    forwarded_message = await context.bot.send_photo(TG_GROUP_ID, photo=update.message.photo[-1].file_id, caption=text)
+                if update.message.video:
+                    forwarded_message = await context.bot.send_video(TG_GROUP_ID, video=update.message.video.file_id, caption=text)
+                if update.message.document:
+                    forwarded_message = await context.bot.send_document(TG_GROUP_ID, document=update.message.document.file_id, caption=text)
+
+            await Feedback.objects.acreate(
+                user_id=obj,
+                message_id=message_id,
+                admin_message_id=forwarded_message.message_id,
+                admin_chat_id=TG_GROUP_ID,
+                text=text,
+                video=update.message.video.file_id if update.message.video else None,
+                photo=update.message.photo[-1].file_id if update.message.photo else None,
+                file=update.message.document.file_id if update.message.document else None
+            )
+
+            await update.message.reply_text(
+                await get_word('thanks for answer, wait for response', update)
+            )
+            await main_menu(update, context)
+            return ConversationHandler.END
+        except:
+            await message.reply_text(await get_word("something went wrong, try again later", update))
+    else:
+        await message.reply_text(await get_word("something went wrong, send /start and try again", update))
