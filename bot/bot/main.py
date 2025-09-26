@@ -65,7 +65,7 @@ async def get_common_questions(update: Update, context: ContextTypes.DEFAULT_TYP
     keyboard = await common_questions_keyboard(update)
     message = await get_word('common questions', update)
     await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(
-        keyboard=keyboard, resize_keyboard=True, one_time_keyboard=True
+        keyboard=keyboard, resize_keyboard=True, one_time_keyboard=False
     ))
     return COMMON_QUESTIONS
 
@@ -90,7 +90,7 @@ async def get_gas_stations(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         await get_word('our stations', update),
         reply_markup=ReplyKeyboardMarkup(
-            keyboard=keyboard, resize_keyboard=True, one_time_keyboard=True
+            keyboard=keyboard, resize_keyboard=True, one_time_keyboard=False
         )
     )
     return SELECT_STATION
