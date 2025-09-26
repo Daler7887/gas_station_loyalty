@@ -76,3 +76,17 @@ class Message(models.Model):
     class Meta:
         verbose_name = "Сообщение"
         verbose_name_plural = "Сообщения"
+
+
+class CommonQuestions(models.Model):
+    question_ru = models.TextField(verbose_name='вопрос', default="")
+    answer_ru = models.TextField(verbose_name='ответ', default="")
+    question_uz = models.TextField(verbose_name='savol', default="")
+    answer_uz = models.TextField(verbose_name='javob', default="")
+
+    def __str__(self):
+        return f"{self.question_ru} ------------------ {self.answer_ru}"
+
+    class Meta:
+        verbose_name = 'Вопрос-ответ'
+        verbose_name_plural = 'Частые вопросы'

@@ -1,4 +1,4 @@
-n = 14
+n = 16
 (
     GET_LANG,
     GET_NAME,
@@ -14,4 +14,6 @@ n = 14
     CHANGE_PHONE,
     CHANGE_PLATE_NUMBER,
     GET_SUGGESTION,
+    COMMON_QUESTIONS,
+    SELECT_STATION
 ) = range(0, n) 

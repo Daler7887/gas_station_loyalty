@@ -128,6 +128,12 @@ class FeedbackAdmin(admin.ModelAdmin):
     list_filter = ['timestamp']
 
 
+class CommonQuestionsAdmin(admin.ModelAdmin):
+    list_display = ['question_ru', 'answer_ru', 'question_uz', 'answer_uz']
+    search_fields = ['question_ru', 'answer_ru', 'question_uz', 'answer_uz']
+
+
 admin.site.register(Bot_user, Bot_userAdmin)
 admin.site.register(Message, MesageAdmin)
 admin.site.register(Feedback, FeedbackAdmin)
+admin.site.register(CommonQuestions, CommonQuestionsAdmin)

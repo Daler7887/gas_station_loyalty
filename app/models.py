@@ -29,6 +29,13 @@ class Organization(models.Model):
         null=True, blank=True, verbose_name="Конец периода списания баллов")
     report_chat_id = models.CharField(
         max_length=255, null=True, blank=True, verbose_name="Chat ID для отчетов")
+    adress = models.CharField(
+        max_length=255, null=True, blank=True, verbose_name="Адрес")
+    adress_uz = models.CharField(
+        max_length=255, null=True, blank=True, verbose_name="Адрес (uz)")
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name='Долгота', blank=True, null=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name='Широта', blank=True, null=True)
+
 
     class Meta:
         verbose_name = 'Организация'

@@ -26,6 +26,10 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await get_word('balance', update)
         ],
         [
+            await get_word('our stations', update),
+            await get_word('common questions', update)
+        ],
+        [
             await get_word('feedback', update),
             await get_word('settings', update)
         ]

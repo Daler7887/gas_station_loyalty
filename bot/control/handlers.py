@@ -53,6 +53,38 @@ main_menu_handler = MessageHandler(
 balance_handler = MessageHandler(filters.Text(
     lang_dict['balance']), main.get_balance)
 
+common_questions_handler = ConversationHandler(
+    entry_points=[MessageHandler(filters.Text(
+        lang_dict['common questions']), main.get_common_questions)],
+    states={
+        COMMON_QUESTIONS: [
+            MessageHandler(filters.Text(lang_dict['main menu']), main.start),
+            MessageHandler(filters.TEXT & (~filters.COMMAND), main.select_common_question),
+        ]
+    },
+    fallbacks=[
+        MessageHandler(filters.Text(lang_dict['main menu']), main.start),
+        CommandHandler("start", main.start)
+    ],
+    name="common_questions"
+)
+
+gas_station_handler = ConversationHandler(
+    entry_points=[MessageHandler(filters.Text(
+        lang_dict['our stations']), main.get_gas_stations)],
+    states={
+        SELECT_STATION: [
+            MessageHandler(filters.Text(lang_dict['main menu']), main.start),
+            MessageHandler(filters.TEXT & (~filters.COMMAND), main.select_station)
+        ]
+    },
+    fallbacks=[
+        MessageHandler(filters.Text(lang_dict['main menu']), main.start),
+        CommandHandler("start", main.start)
+    ],
+    name="gas_stations"
+)
+
 change_lang_handler = ConversationHandler(
     entry_points=[MessageHandler(filters.Text(
         lang_dict['change lang']), main.change_lang)],
@@ -147,5 +179,7 @@ handlers = [
     suggestions_handler,
     feedback_handler_answer,
     balance_handler,
+    common_questions_handler,
+    gas_station_handler,
     change_plate_number_handler
 ]

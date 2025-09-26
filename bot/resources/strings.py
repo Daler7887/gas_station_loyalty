@@ -226,5 +226,25 @@ Bizni tanlaganingiz uchun rahmat! 🚗💨",
     "thanks for answer, wait for response": [
         "Javob uchun rahmat, tez orada siz bilan bog'lanamiz.",
         "Спасибо за ответ, мы свяжемся с вами в ближайшее время."
+    ],
+    "common questions": [
+        "Ko'p so'raladigan savollar ❓",
+        "Часто задаваемые вопросы ❓"
+    ],
+    "our stations": [
+        "Bizning shaxobchalarimiz ⛽",
+        "Наши заправки ⛽"
+    ],
+    "question not found": [
+        "Kechirasiz, bunday savol topilmadi. Iltimos, boshqasini tanlang.",
+        "Извините, такой вопрос не найден. Пожалуйста, выберите другой."
+    ],
+    "station not found": [
+        "Kechirasiz, bunday shaxobcha topilmadi. Iltimos, boshqasini tanlang.",
+        "Извините, такой заправки не найдено. Пожалуйста, выберите другую."
+    ],
+    "station bonus time": [
+        "Bonuslar bilan to'lov qilish mumkin bo'lgan vaqt: {} - {}",
+        "Время, когда можно оплатить бонусами: {} - {}"
     ]
 }

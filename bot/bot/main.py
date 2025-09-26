@@ -61,6 +61,60 @@ async def get_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await main_menu(update, context)
 
 
+async def get_common_questions(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = await common_questions_keyboard(update)
+    message = await get_word('common questions', update)
+    await update.message.reply_text(message, reply_markup=ReplyKeyboardMarkup(
+        keyboard=keyboard, resize_keyboard=True, one_time_keyboard=True
+    ))
+    return COMMON_QUESTIONS
+
+
+async def select_common_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    question_text = update.message.text
+    user = await Bot_user.objects.aget(user_id=update.message.chat.id)
+    try:
+        question = await CommonQuestions.objects.aget(
+            question_uz=question_text) if user.lang == 'uz' else await CommonQuestions.objects.aget(
+            question_ru=question_text)
+        answer = question.answer_uz if user.lang == 'uz' else question.answer_ru
+        await update.message.reply_text(answer)
+    except CommonQuestions.DoesNotExist:
+        await update.message.reply_text(await get_word('question not found', update))
+    
+    return COMMON_QUESTIONS
+
+
+async def get_gas_stations(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = await stations_keyboard(update)
+    await update.message.reply_text(
+        await get_word('our stations', update),
+        reply_markup=ReplyKeyboardMarkup(
+            keyboard=keyboard, resize_keyboard=True, one_time_keyboard=True
+        )
+    )
+    return SELECT_STATION
+
+
+async def select_station(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    station_name = update.message.text
+    user = await Bot_user.objects.aget(user_id=update.message.chat.id)
+    try:
+        station = await Organization.objects.aget(adress=station_name) if user.lang == 'ru' else await Organization.objects.aget(adress_uz=station_name)
+        await update.message.reply_location(latitude=str(station.latitude), longitude=str(station.longitude))
+
+        if station.redeem_start_time and station.redeem_end_time:
+            message = (await get_word('station bonus time', update)).format(
+                station.redeem_start_time.strftime("%H:%M"),
+                station.redeem_end_time.strftime("%H:%M")
+            )
+            await update.message.reply_text(message)
+        
+    except Organization.DoesNotExist:
+        await update.message.reply_text(await get_word('station not found', update))
+    return SELECT_STATION
+
+
 async def change_lang(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update_message_reply_text(
         update,
