@@ -166,11 +166,6 @@ class FuelSale(models.Model):
         if is_new:
             inform_user_sale(car, self.quantity, round(self.final_amount), round(self.total_amount), round(discount), round(points))
 
-        class Meta:
-            indexes = [
-                models.Index(fields=['plate_number', 'date']),
-            ]
-
     def get_points_percent(self):
         # Получаем процент начисления баллов
         constant = Constant.objects.filter(key='points_percent').first()
@@ -181,6 +176,9 @@ class FuelSale(models.Model):
     class Meta:
         verbose_name = "Продажа"
         verbose_name_plural = "Продажи"
+        indexes = [
+            models.Index(fields=['plate_number', 'date']),
+        ]
 
     def __str__(self):
         return f"Продажа #{self.id} - {self.organization} за {self.date.strftime('%d.%m.%Y %H:%M:%S')} на сумму {self.total_amount:.0f}"
@@ -195,7 +193,7 @@ class LoyaltyPointsTransaction(models.Model):
     fuel_sale = models.ForeignKey(
         FuelSale, on_delete=models.CASCADE, db_index=True, null=True, blank=True, related_name='bonus_transactions', verbose_name="Продажа топлива")
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name="Организация")
-    car = models.ForeignKey('Car', on_delete=models.CASCADE, null=True, verbose_name="Автомобиль")
+    car = models.ForeignKey('Car', db_index=True, on_delete=models.CASCADE, null=True, verbose_name="Автомобиль")
     transaction_type = models.CharField(
         max_length=10, choices=TRANSACTION_TYPE_CHOICES, verbose_name="Тип транзакции")
     points = models.IntegerField(verbose_name="Баллы")
