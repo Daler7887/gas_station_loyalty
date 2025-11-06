@@ -58,6 +58,8 @@ class Message(models.Model):
         'bot.Bot_user', blank=True, related_name='bot_users_list', verbose_name='Пользователи бота')
     text = models.TextField(null=True, blank=False,
                             max_length=1024, verbose_name='Текст')
+    text_uz = models.TextField(null=True, blank=True,
+                               max_length=1024, verbose_name='Текст (узбекский)')
     photo = models.FileField(null=True, blank=True, upload_to="message/photo/", verbose_name='Фото',
                              validators=[FileExtensionValidator(
                                  allowed_extensions=['jpg', 'jpeg', 'png', 'bmp', 'gif'])]

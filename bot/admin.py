@@ -40,11 +40,11 @@ class Bot_userInline(admin.StackedInline):
 
 
 class MesageAdmin(admin.ModelAdmin):
-    list_display = ['bot_users_name', 'small_text',
+    list_display = ['id','bot_users_name', 'small_text', 'small_text_uz',
                     'open_photo', 'open_video', 'open_file', 'date']
     fieldsets = (
         ('', {
-            'fields': ['bot_users', 'text', 'photo', 'video', 'file'],
+            'fields': ['bot_users', 'text', 'text_uz', 'photo', 'video', 'file'],
             'description': 'Выберите пользователей, которым вы хотите отправить сообщение, или просто оставьте поле пустым, чтобы отправить всем пользователям.',
         }),
 
@@ -66,6 +66,10 @@ class MesageAdmin(admin.ModelAdmin):
         cut_text = obj.text[:20] + ' ...' if len(obj.text) >= 20 else obj.text
         return format_html(f'<p title={obj.text}>{cut_text}</p>')
     small_text.short_description = 'Текст'
+    def small_text_uz(self, obj):
+        cut_text = obj.text_uz[:20] + ' ...' if obj.text_uz and len(obj.text_uz) >= 20 else obj.text_uz
+        return format_html(f'<p title={obj.text_uz}>{cut_text}</p>')
+    small_text_uz.short_description = 'Текст (узбекский)'
 
     def open_photo(self, obj):
         if obj.photo:
