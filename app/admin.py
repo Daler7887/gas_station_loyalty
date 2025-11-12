@@ -56,9 +56,16 @@ def fill_plate_numbers(modeladmin, request, queryset):
     FuelSale.fill_plate_numbers()
 
 
+class RedeemPeriodInline(admin.TabularInline):
+    model = RedeemPeriod
+    extra = 0
+    fields = ('start_time', 'end_time')  
+
+
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = ('name', 'server', 'log_path', 'loyalty_program', 'report_chat_id', 'adress', 'adress_uz', 'longitude', 'latitude')
+    inlines = [RedeemPeriodInline]
 
 
 @admin.action(description='Resave fuel sales with filters')

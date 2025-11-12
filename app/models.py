@@ -45,6 +45,27 @@ class Organization(models.Model):
         return self.name
 
 
+class RedeemPeriod(models.Model):
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name="redeem_periods", verbose_name="Организация"
+    )
+    start_time = models.TimeField(verbose_name="Начало периода списания баллов")
+    end_time   = models.TimeField(verbose_name="Конец периода списания баллов")
+
+    class Meta:
+        verbose_name = "Период списания баллов"
+        verbose_name_plural = "Периоды списания баллов"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organization", "start_time", "end_time"],
+                name="uniq_org_redeem_time_window"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.organization.name}: {self.start_time} - {self.end_time}"
+
+
 class Pump(models.Model):
     number = models.IntegerField(verbose_name="Номер")  # Номер колонки
     ip_address = models.CharField(max_length=15, null=True, blank=True, verbose_name="IP-адрес")

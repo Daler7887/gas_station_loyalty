@@ -103,10 +103,13 @@ async def select_station(update: Update, context: ContextTypes.DEFAULT_TYPE):
         station = await Organization.objects.aget(adress=station_name) if user.lang == 'ru' else await Organization.objects.aget(adress_uz=station_name)
         await update.message.reply_location(latitude=str(station.latitude), longitude=str(station.longitude))
 
-        if station.redeem_start_time and station.redeem_end_time:
+        redeem_periods = [period async for period in station.redeem_periods.all()]
+        if redeem_periods:
+            periods_text = "\n"
+            for period in redeem_periods:
+                periods_text += f"- {period.start_time.strftime('%H:%M')} - {period.end_time.strftime('%H:%M')}\n"
             message = (await get_word('station bonus time', update)).format(
-                station.redeem_start_time.strftime("%H:%M"),
-                station.redeem_end_time.strftime("%H:%M")
+                periods_text
             )
             await update.message.reply_text(message)
         
