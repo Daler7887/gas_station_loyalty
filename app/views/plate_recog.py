@@ -71,23 +71,28 @@ class PlateRecognitionView(APIView):
         )
         new_record.save()
 
-        # Проверяем, есть ли машина в черном списке
-
         organization = pump.organization
         if not organization.loyalty_program:
             return Response(status=status.HTTP_200_OK)
 
         # Check if the current time is within the organization's redeem time range
-        if organization.redeem_start_time and organization.redeem_end_time:
+        redeem_periods = organization.redeem_periods.all()
+        if redeem_periods.exists():
             now = datetime.now().time()
-            start = organization.redeem_start_time
-            end = organization.redeem_end_time
-            if start < end:
-                if not (start <= now <= end):
-                    return Response(status=status.HTTP_200_OK)
-            else:  # Time range crosses midnight
-                if not (now >= start or now <= end):
-                    return Response(status=status.HTTP_200_OK)
+            in_redeem_period = False
+            for period in redeem_periods:
+                start = period.start_time
+                end = period.end_time
+                if start < end:
+                    if start <= now <= end:
+                        in_redeem_period = True
+                        break
+                else:  # Time range crosses midnight
+                    if now >= start or now <= end:
+                        in_redeem_period = True
+                        break
+            if not in_redeem_period:
+                return Response(status=status.HTTP_200_OK)
 
         # Send notification to the user
         try:
