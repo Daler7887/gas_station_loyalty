@@ -11,12 +11,19 @@ class Command(BaseCommand):
             type=int,
             help='ID of the message to be sent in the newsletter.',
         )
+        parser.add_argument(
+            '--start_id',
+            type=int,
+            help='ID of the user to start sending from.',
+        )
 
     def handle(self, *args, **kwargs):
         from bot.models import Message, Bot_user
         from asgiref.sync import async_to_sync
 
         message_id = kwargs.get('message_id')
+        start_id = kwargs.get('start_id')
+
         if not message_id:
             self.stdout.write('Please provide a valid --message_id argument.')
             return
@@ -32,7 +39,7 @@ class Command(BaseCommand):
             users = Bot_user.objects.all()
 
         total = users.count()
-        for index, user in enumerate(users, start=1):
+        for index, user in enumerate(users, start=start_id or 1):   
             try:
                 photo = message.photo.path if message.photo else None
                 video = message.video.path if message.video else None
